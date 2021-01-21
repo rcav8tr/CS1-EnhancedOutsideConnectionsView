@@ -24,14 +24,14 @@ This mod is compatible with all Down Loadable Content (DLC) packages thru Sunset
 
 This mod is compatible with [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2016920607]Ploppable RICO Revisited[/url] mod.
 
-This mod is compatible with mods that alter the operation of outside connections (e.g. [https://steamcommunity.com/sharedfiles/filedetails/?id=1721492498]Optimised Outside Connections[/url] and [url=https://steamcommunity.com/sharedfiles/filedetails/?id=734025380]Configure Outside Connections' Limits[/url]).
+This mod is compatible with mods that alter the operation of outside connections (e.g. [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1721492498]Optimised Outside Connections[/url] and [url=https://steamcommunity.com/sharedfiles/filedetails/?id=734025380]Configure Outside Connections' Limits[/url]).
 
 This mod may or may not work correctly if another mod is enabled that alters the Outside Connections info view panel or alters the logic that gets building or vehicle color when the Outside Connections info view is displayed.
 
 [h1]Source Code[/h1]
-The source code is available TBD [url=https://github.com/rcav8tr/ExcludeMail]here[/url].
+The source code is available [url=https://github.com/rcav8tr/EnhancedOutsideConnectionsView]here[/url].
 
-See TBD [url=https://steamcommunity.com/sharedfiles/filedetails/changelog/2093019121]Change Notes[/url] for the revision history.
+See [url=https://steamcommunity.com/sharedfiles/filedetails/changelog/2368396560]Change Notes[/url] for the revision history.
 
 [h1]Acknowledgments[/h1]
 This mod uses [url=https://github.com/pardeike/Harmony/wiki]Harmony Library[/url] (version 1.2.0.1) by [url=https://github.com/pardeike]Andreas Pardeike[/url].

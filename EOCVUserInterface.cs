@@ -1246,7 +1246,11 @@ namespace EnhancedOutsideConnectionsView
                 // does not destroy the objects implicitly like returning to the Main Menu to load a saved game
 
                 // destroy resources
-                _resources.Clear();
+                if (_resources != null)
+                {
+                    _resources.Clear();
+                    _resources = null;
+                }
                 DestroyResource(_importGoods);
                 DestroyResource(_importForestry);
                 DestroyResource(_importFarming);
@@ -1302,11 +1306,14 @@ namespace EnhancedOutsideConnectionsView
         /// </summary>
         private static void DestroyTotal(UITotal total)
         {
-            // destroy components
-            DestroyUIComponent(ref total.Chart);
-            DestroyUIComponent(ref total.Line);
-            DestroyUIComponent(ref total.Text);
-            DestroyUIComponent(ref total.Total);
+            if (total != null)
+            {
+                // destroy components
+                DestroyUIComponent(ref total.Chart);
+                DestroyUIComponent(ref total.Line);
+                DestroyUIComponent(ref total.Text);
+                DestroyUIComponent(ref total.Total);
+            }
         }
 
         /// <summary>

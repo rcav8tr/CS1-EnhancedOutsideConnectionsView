@@ -2,6 +2,9 @@
 using UnityEngine;
 using System;
 using Harmony;
+using ColossalFramework.Plugins;
+using ColossalFramework;
+using ColossalFramework.UI;
 
 namespace EnhancedOutsideConnectionsView
 {
@@ -21,6 +24,35 @@ namespace EnhancedOutsideConnectionsView
                 // check for new or loaded game
                 if (mode == LoadMode.NewGame || mode == LoadMode.NewGameFromScenario || mode == LoadMode.LoadGame)
                 {
+                    // determine if Exclude Mail mod is enabled
+                    foreach (PluginManager.PluginInfo mod in Singleton<PluginManager>.instance.GetPluginsInfo())
+                    {
+                        // ignore builtin mods and camera script
+                        if (!mod.isBuiltin && !mod.isCameraScript)
+                        {
+                            // check against the Exclude Mail workshop ID
+                            if (mod.publishedFileID.AsUInt64 == 2093019121)
+                            {
+                                if (mod.isEnabled)
+                                {
+                                    // create dialog panel
+                                    ExceptionPanel panel = UIView.library.ShowModal<ExceptionPanel>("ExceptionPanel");
+                                    panel.SetMessage(
+                                        "Enhanced Outside Connections View", 
+                                        "The Enhanced Outside Connections View mod supersedes the Exclude Mail mod.  \n\n" +
+                                        "Please unsubscribe from the Exclude Mail mod.",
+                                        false);
+
+                                    // do not initialize this mod
+                                    return;
+                                }
+
+                                // found it, but not enabled
+                                break;
+                            }
+                        }
+                    }
+
                     // initialize Harmony
                     EOCV.Harmony = HarmonyInstance.Create("com.github.rcav8tr.EnhancedOutsideConnectionsView");
                     if (EOCV.Harmony == null)
