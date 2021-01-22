@@ -780,7 +780,6 @@ namespace EnhancedOutsideConnectionsView
                     GetValue(importOre,      importTotal),
                     GetValue(importOil,      importTotal),
                     GetValue(importMail,     importTotal));
-                _importTotal.Chart.Update();
 
                 // get export values
                 DistrictResourceData exportData = instance.m_districts.m_buffer[0].m_exportData;
@@ -823,7 +822,6 @@ namespace EnhancedOutsideConnectionsView
                     GetValue(exportOil,      exportTotal),
                     GetValue(exportMail,     exportTotal),
                     GetValue(exportFish,     exportTotal));
-                _exportTotal.Chart.Update();
             }
             catch (Exception ex)
             {
