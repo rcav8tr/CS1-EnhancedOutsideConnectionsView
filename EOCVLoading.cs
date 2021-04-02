@@ -1,7 +1,6 @@
 ﻿using ICities;
 using UnityEngine;
 using System;
-using Harmony;
 using ColossalFramework.Plugins;
 using ColossalFramework;
 using ColossalFramework.UI;
@@ -53,16 +52,11 @@ namespace EnhancedOutsideConnectionsView
                         }
                     }
 
-                    // initialize Harmony
-                    EOCV.Harmony = HarmonyInstance.Create("com.github.rcav8tr.EnhancedOutsideConnectionsView");
-                    if (EOCV.Harmony == null)
-                    {
-                        Debug.LogError("Unable to create Harmony instance.");
-                        return;
-                    }
-
                     // initialize user interface
                     if (!EOCVUserInterface.Initialize()) return;
+
+                    // create the Harmony patches
+                    if (!HarmonyPatcher.CreatePatches()) return;
                 }
             }
             catch (Exception ex)
@@ -78,11 +72,18 @@ namespace EnhancedOutsideConnectionsView
 
             try
             {
-                // remove Harmony patches
-                if (EOCV.Harmony != null)
+                try
                 {
-                    EOCV.Harmony.UnpatchAll();
-                    EOCV.Harmony = null;
+                    // remove Harmony patches
+                    HarmonyPatcher.RemovePatches();
+                }
+                catch (System.IO.FileNotFoundException ex)
+                {
+                    // ignore missing Harmony, rethrow all others
+                    if (!ex.FileName.ToUpper().Contains("HARMONY"))
+                    {
+                        throw ex;
+                    }
                 }
 
                 // deinitialize user interface

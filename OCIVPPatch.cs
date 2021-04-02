@@ -1,6 +1,4 @@
-﻿using Harmony;
-using UnityEngine;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace EnhancedOutsideConnectionsView
 {
@@ -12,33 +10,17 @@ namespace EnhancedOutsideConnectionsView
         /// <summary>
         /// create patch for OutsideConnectionsInfoViewPanel.UpdatePanel
         /// </summary>
-        public static void CreateUpdatePanelPatch()
+        public static bool CreateUpdatePanelPatch()
         {
-            // get the original UpdatePanel method
-            MethodInfo original = typeof(OutsideConnectionsInfoViewPanel).GetMethod("UpdatePanel", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (original == null)
-            {
-                Debug.LogError($"Unable to find OutsideConnectionsInfoViewPanel.UpdatePanel method.");
-                return;
-            }
-
-            // find the UpdatePanelPostfix method
-            MethodInfo postfix = typeof(OCIVPPatch).GetMethod("UpdatePanelPostfix", BindingFlags.Static | BindingFlags.Public);
-            if (postfix == null)
-            {
-                Debug.LogError($"Unable to find OCIVPPatch.UpdatePanelPostfix method.");
-                return;
-            }
-
-            // create the patch
-            EOCV.Harmony.Patch(original, null, new HarmonyMethod(postfix), null);
+            // patch with the postfix routine
+            return HarmonyPatcher.CreatePostfixPatch(typeof(OutsideConnectionsInfoViewPanel), "UpdatePanel", BindingFlags.Instance | BindingFlags.NonPublic, typeof(OCIVPPatch), "OutsideConnectionsInfoViewPanelUpdatePanel");
         }
 
         /// <summary>
         /// update everything after base processing
         /// base processing is always allowed to execute because it does a few other things that are needed
         /// </summary>
-        public static void UpdatePanelPostfix()
+        public static void OutsideConnectionsInfoViewPanelUpdatePanel()
         {
             // update the panel
             EOCVUserInterface.UpdatePanel();

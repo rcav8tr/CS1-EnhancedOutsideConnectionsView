@@ -1,7 +1,4 @@
-﻿using Harmony;
-using UnityEngine;
-using System;
-using System.Reflection;
+﻿using UnityEngine;
 
 namespace EnhancedOutsideConnectionsView
 {
@@ -13,7 +10,7 @@ namespace EnhancedOutsideConnectionsView
         // For vehicles not available because a DLC is not installed, the vehicle AI remains in the game logic.
         // The corresponding vehicle AI patch will simply never be called because there will be no vehicles of that type.
         // Therefore, there is no need to avoid patching a vehicle AI for missing DLC.
- 
+
         // All AIs below derive from VehicleAI.
         // The vehicle AIs below preceded by "Y" have a GetColor routine with logic for Outside Connections.
 
@@ -77,37 +74,31 @@ namespace EnhancedOutsideConnectionsView
         // n    TramAI                    (unlimited:  Tram Depot)
         // n VortexAI                     (TBD for tornado?)
 
+
+        /// <summary>
+        /// create a patch for every vehicle AI that has a GetColor method with logic for Outside Connections
+        /// in the listings above, that is vehicle AIs marked with Y
+        /// </summary>
+        public static bool CreateGetColorPatches()
+        {
+            if (!CreateGetColorPatch<CargoPlaneAI>()) return false;     // derives from AircraftAI, but AircraftAI does not have its own GetColor routine
+            if (!CreateGetColorPatch<CargoShipAI >()) return false;     // derives from ShipAI,     but ShipAI     does not have its own GetColor routine
+            if (!CreateGetColorPatch<CargoTrainAI>()) return false;     // derives from TrainAI,    but TrainAI    does not have its own GetColor routine
+
+            if (!CreateGetColorPatch<CargoTruckAI>()) return false;
+            if (!CreateGetColorPatch<PostVanAI   >()) return false;
+
+            // success
+            return true;
+        }
+
         /// <summary>
         /// create a patch of the GetColor method for the specified vehicle AI type
         /// </summary>
-        /// <remarks>
-        /// Cannot use HarmonyPatch attribute because all the specific vehicle AI classes have two GetColor routines:
-        /// There is a GetColor routine in the derived AI classes which has Vehicle as a parameter.
-        /// There is a GetColor routine in the base clase VehicleAI which has VehicleParked as a parameter.
-        /// Furthermore, MakeByRefType cannot be specified in the HarmonyPatch attribute (or any attribute) to allow the patch to be created automatically.
-        /// This routine manually finds the GetColor routine with Vehicle as a ref type parameter and creates the patch for it.
-        /// </remarks>
-        public static void CreateGetColorPatch<T>() where T : VehicleAI
+        private static bool CreateGetColorPatch<T>() where T : VehicleAI
         {
-            // get the original GetColor method that takes ref Vehicle parameter
-            Type vehicleAIType = typeof(T);
-            MethodInfo original = vehicleAIType.GetMethod("GetColor", new Type[] { typeof(ushort), typeof(Vehicle).MakeByRefType(), typeof(InfoManager.InfoMode) });
-            if (original == null)
-            {
-                Debug.LogError($"Unable to find GetColor method for vehicle AI type {vehicleAIType}.");
-                return;
-            }
-
-            // find the Prefix method
-            MethodInfo prefix = typeof(VehicleAIPatch).GetMethod("Prefix", BindingFlags.Static | BindingFlags.Public);
-            if (prefix == null)
-            {
-                Debug.LogError($"Unable to find VehicleAIPatch.Prefix method.");
-                return;
-            }
-
-            // create the patch
-            EOCV.Harmony.Patch(original, new HarmonyMethod(prefix), null, null);
+            // same routine is used for all vehicle AI types
+            return HarmonyPatcher.CreatePrefixPatchVehicleAI(typeof(T), "GetColor", typeof(VehicleAIPatch), "VehicleAIGetColor");
         }
 
         /// <summary>
@@ -115,7 +106,7 @@ namespace EnhancedOutsideConnectionsView
         /// same Prefix routine is used for all vehicle AI types
         /// </summary>
         /// <returns>whether or not to do base processing</returns>
-        public static bool Prefix(ushort vehicleID, ref Vehicle data, InfoManager.InfoMode infoMode, ref Color __result)
+        public static bool VehicleAIGetColor(ushort vehicleID, ref Vehicle data, InfoManager.InfoMode infoMode, ref Color __result)
         {
             // do processing for this mod only for Outside Connections info view
             if (infoMode == InfoManager.InfoMode.Connections)

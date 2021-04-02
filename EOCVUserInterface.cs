@@ -232,48 +232,8 @@ namespace EnhancedOutsideConnectionsView
                 SetCheckBox(_exportMail,     config.ExportMail);
                 SetCheckBox(_exportFish,     config.ExportFish);
 
-                // create patches for all building AIs where the GetColor routine has logic for Outside Connections
-                BuildingAIPatch.CreateGetColorPatch<CommercialBuildingAI>();
-                BuildingAIPatch.CreateGetColorPatch(   "PloppableRICO.GrowableCommercialAI");       // derives from CommercialBuildingAI
-                BuildingAIPatch.CreateGetColorPatch(      "PloppableRICO.PloppableCommercialAI");   // derives from PloppableRICO.GrowableCommercialAI
-                BuildingAIPatch.CreateGetColorPatch<IndustrialBuildingAI>();
-                BuildingAIPatch.CreateGetColorPatch(   "PloppableRICO.GrowableIndustrialAI");       // derives from IndustrialBuildingAI
-                BuildingAIPatch.CreateGetColorPatch(      "PloppableRICO.PloppableIndustrialAI");   // derives from PloppableRICO.GrowableIndustrialAI
-                BuildingAIPatch.CreateGetColorPatch<IndustrialExtractorAI>();
-                BuildingAIPatch.CreateGetColorPatch<   LivestockExtractorAI>();                     // derives from IndustrialExtractorAI
-                BuildingAIPatch.CreateGetColorPatch(   "PloppableRICO.GrowableExtractorAI");        // derives from IndustrialExtractorAI
-                BuildingAIPatch.CreateGetColorPatch(      "PloppableRICO.PloppableExtractorAI");    // derives from PloppableRICO.GrowableExtractorAI
-                BuildingAIPatch.CreateGetColorPatch<OfficeBuildingAI>();
-                BuildingAIPatch.CreateGetColorPatch(   "PloppableRICO.GrowableOfficeAI");           // derives from OfficeBuildingAI
-                BuildingAIPatch.CreateGetColorPatch(      "PloppableRICO.PloppableOfficeAI");       // derives from PloppableRICO.GrowableOfficeAI
-
-                BuildingAIPatch.CreateGetColorPatch<ExtractingFacilityAI >();
-                BuildingAIPatch.CreateGetColorPatch<FishFarmAI           >();
-                BuildingAIPatch.CreateGetColorPatch<FishingHarborAI      >();
-                BuildingAIPatch.CreateGetColorPatch<HeatingPlantAI       >();
-                BuildingAIPatch.CreateGetColorPatch<MarketAI             >();
-                BuildingAIPatch.CreateGetColorPatch<PostOfficeAI         >();
-                BuildingAIPatch.CreateGetColorPatch<PowerPlantAI         >();
-                BuildingAIPatch.CreateGetColorPatch<   DamPowerHouseAI   >(); // derives from PowerPlantAI
-                BuildingAIPatch.CreateGetColorPatch<   FusionPowerPlantAI>(); // derives from PowerPlantAI
-                BuildingAIPatch.CreateGetColorPatch<   SolarPowerPlantAI >(); // derives from PowerPlantAI
-                BuildingAIPatch.CreateGetColorPatch<   WindTurbineAI     >(); // derives from PowerPlantAI
-                BuildingAIPatch.CreateGetColorPatch<ProcessingFacilityAI >();
-                BuildingAIPatch.CreateGetColorPatch<   UniqueFactoryAI   >(); // derives from ProcessingFacilityAI
-                BuildingAIPatch.CreateGetColorPatch<ShelterAI            >();
-                BuildingAIPatch.CreateGetColorPatch<WarehouseAI          >();
-
-                // create patches for all vehicle AIs where the GetColor routine has logic for Outside Connections
-                VehicleAIPatch.CreateGetColorPatch<CargoPlaneAI>();     // derives from AircraftAI, but AircraftAI does not have its own GetColor routine
-                VehicleAIPatch.CreateGetColorPatch<CargoShipAI >();     // derives from ShipAI,     but ShipAI     does not have its own GetColor routine
-                VehicleAIPatch.CreateGetColorPatch<CargoTrainAI>();     // derives from TrainAI,    but TrainAI    does not have its own GetColor routine
-
-                VehicleAIPatch.CreateGetColorPatch<CargoTruckAI>();
-                VehicleAIPatch.CreateGetColorPatch<PostVanAI   >();
-
-                // create update panel patch
+                // not initialized
                 _updatePanelInitialized = false;
-                OCIVPPatch.CreateUpdatePanelPatch();
 
                 // success
                 return true;
@@ -852,6 +812,7 @@ namespace EnhancedOutsideConnectionsView
                 string buildingAITypeString = buildingAIType.ToString();
 
                 // the logic for each building AI below was derived from the GetColor method of that AI, unless specified otherwise
+                // must include derived building AIs, even though no patch was created, so that they get handled same as the base building AI
 
                 if (buildingAIType == typeof(CommercialBuildingAI) ||
                     buildingAITypeString == "PloppableRICO.GrowableCommercialAI" ||     // derives from CommercialBuildingAI
@@ -883,7 +844,7 @@ namespace EnhancedOutsideConnectionsView
                             case ItemClass.SubService.IndustrialFarming:  transferReason = TransferManager.TransferReason.Grain; break;
                             case ItemClass.SubService.IndustrialOre:      transferReason = TransferManager.TransferReason.Ore;   break;
                             case ItemClass.SubService.IndustrialOil:      transferReason = TransferManager.TransferReason.Oil;   break;
-                            default: transferReason = TransferManager.TransferReason.None; break;
+                            default:                                      transferReason = TransferManager.TransferReason.None;  break;
                         }
 
                         // get the color based on transfer reason
@@ -1071,6 +1032,12 @@ namespace EnhancedOutsideConnectionsView
                     // both import and export
                     // import and export both use the same actual resource
                     return GetColorFromTransferReason(((WarehouseAI)data.Info.m_buildingAI).GetActualTransferReason(buildingID, ref data), ref color);
+                }
+
+                // buildingID zero is when a building is being placed while the info view panel is still displayed
+                if (buildingID == 0)
+                {
+                    return true;
                 }
 
                 // if get here then a building AI patch was created without adding logic above for the AI
