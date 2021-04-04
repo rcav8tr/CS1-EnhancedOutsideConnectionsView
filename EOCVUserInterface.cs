@@ -1,8 +1,9 @@
 ﻿using ColossalFramework;
 using ColossalFramework.UI;
+using ColossalFramework.Globalization;
+using ColossalFramework.Math;
 using UnityEngine;
 using System;
-using ColossalFramework.Math;
 using System.Collections.Generic;
 
 namespace EnhancedOutsideConnectionsView
@@ -78,9 +79,6 @@ namespace EnhancedOutsideConnectionsView
         // the two totals
         private static UITotal _importTotal;
         private static UITotal _exportTotal;
-
-        // number format
-        private static string _numberFormat;
 
         // text colors
         private static Color32 _textColorNormal;
@@ -513,16 +511,15 @@ namespace EnhancedOutsideConnectionsView
             if (!Find(panel, originalTotalLabelName, out UILabel originalTotal)) return false;
             originalTotal.isVisible = false;
 
-            // parse the format string for original total label to get both the total text and number format
-            string format = ColossalFramework.Globalization.Locale.Get(originalTotal.localeID);
+            // parse the format string for original total label to get the total text, which is everything up to but not including the left brace
+            string format = Locale.Get(originalTotal.localeID);
             int leftBracePosition = format.IndexOf("{");
             if (leftBracePosition == -1)
             {
                 Debug.LogError($"Unable to find left brace in format string [{format}] of [{originalTotalLabelName}].");
                 return false;
             }
-            string totalText = format.Substring(0, leftBracePosition).Trim();   // total text is everything up to but not including the left brace
-            _numberFormat = format.Substring(leftBracePosition).Trim();         // number format is everything from the left brace to the end
+            string totalText = format.Substring(0, leftBracePosition).Trim();
 
             // hide original radial chart
             string originalChartName = (direction == ConnectionDirection.Import ? "ImportChart" : "ExportChart");
@@ -721,16 +718,16 @@ namespace EnhancedOutsideConnectionsView
                 if (!IsCheckBoxChecked(_importMail    )) importMail     = 0;
 
                 // display import values
-                _importGoods.Count.text    = StringUtils.SafeFormat(_numberFormat, importGoods);
-                _importForestry.Count.text = StringUtils.SafeFormat(_numberFormat, importForestry);
-                _importFarming.Count.text  = StringUtils.SafeFormat(_numberFormat, importFarming);
-                _importOre.Count.text      = StringUtils.SafeFormat(_numberFormat, importOre);
-                _importOil.Count.text      = StringUtils.SafeFormat(_numberFormat, importOil);
-                _importMail.Count.text     = StringUtils.SafeFormat(_numberFormat, importMail);
+                _importGoods.Count.text    = importGoods.ToString(   "N0", LocaleManager.cultureInfo);
+                _importForestry.Count.text = importForestry.ToString("N0", LocaleManager.cultureInfo);
+                _importFarming.Count.text  = importFarming.ToString( "N0", LocaleManager.cultureInfo);
+                _importOre.Count.text      = importOre.ToString(     "N0", LocaleManager.cultureInfo);
+                _importOil.Count.text      = importOil.ToString(     "N0", LocaleManager.cultureInfo);
+                _importMail.Count.text     = importMail.ToString(    "N0", LocaleManager.cultureInfo);
 
                 // compute and display import total
                 int importTotal = importGoods + importForestry + importFarming + importOre + importOil + importMail;
-                _importTotal.Total.text = StringUtils.SafeFormat(_numberFormat, importTotal);
+                _importTotal.Total.text = importTotal.ToString("N0", LocaleManager.cultureInfo);
 
                 // update import chart
                 _importTotal.Chart.SetValues(
@@ -761,17 +758,17 @@ namespace EnhancedOutsideConnectionsView
                 if (!IsCheckBoxChecked(_exportFish    )) exportFish     = 0;
 
                 // display export values
-                _exportGoods.Count.text    = StringUtils.SafeFormat(_numberFormat, exportGoods);
-                _exportForestry.Count.text = StringUtils.SafeFormat(_numberFormat, exportForestry);
-                _exportFarming.Count.text  = StringUtils.SafeFormat(_numberFormat, exportFarming);
-                _exportOre.Count.text      = StringUtils.SafeFormat(_numberFormat, exportOre);
-                _exportOil.Count.text      = StringUtils.SafeFormat(_numberFormat, exportOil);
-                _exportMail.Count.text     = StringUtils.SafeFormat(_numberFormat, exportMail);
-                _exportFish.Count.text     = StringUtils.SafeFormat(_numberFormat, exportFish);
+                _exportGoods.Count.text    = exportGoods.ToString(   "N0", LocaleManager.cultureInfo);
+                _exportForestry.Count.text = exportForestry.ToString("N0", LocaleManager.cultureInfo);
+                _exportFarming.Count.text  = exportFarming.ToString( "N0", LocaleManager.cultureInfo);
+                _exportOre.Count.text      = exportOre.ToString(     "N0", LocaleManager.cultureInfo);
+                _exportOil.Count.text      = exportOil.ToString(     "N0", LocaleManager.cultureInfo);
+                _exportMail.Count.text     = exportMail.ToString(    "N0", LocaleManager.cultureInfo);
+                _exportFish.Count.text     = exportFish.ToString(    "N0", LocaleManager.cultureInfo);
 
                 // compute and display export total
                 int exportTotal = exportGoods + exportForestry + exportFarming + exportOre + exportOil + exportMail + exportFish;
-                _exportTotal.Total.text = StringUtils.SafeFormat(_numberFormat, exportTotal);
+                _exportTotal.Total.text = exportTotal.ToString("N0", LocaleManager.cultureInfo);
 
                 // update export chart
                 _exportTotal.Chart.SetValues(
