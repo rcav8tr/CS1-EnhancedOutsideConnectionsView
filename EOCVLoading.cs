@@ -2,7 +2,6 @@
 using UnityEngine;
 using System;
 using ColossalFramework.Plugins;
-using ColossalFramework;
 using ColossalFramework.UI;
 
 namespace EnhancedOutsideConnectionsView
@@ -24,7 +23,7 @@ namespace EnhancedOutsideConnectionsView
                 if (mode == LoadMode.NewGame || mode == LoadMode.NewGameFromScenario || mode == LoadMode.LoadGame)
                 {
                     // determine if Exclude Mail mod is enabled
-                    foreach (PluginManager.PluginInfo mod in Singleton<PluginManager>.instance.GetPluginsInfo())
+                    foreach (PluginManager.PluginInfo mod in PluginManager.instance.GetPluginsInfo())
                     {
                         // ignore builtin mods and camera script
                         if (!mod.isBuiltin && !mod.isCameraScript)

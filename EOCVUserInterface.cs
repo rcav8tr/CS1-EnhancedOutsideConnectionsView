@@ -1,5 +1,4 @@
-﻿using ColossalFramework;
-using ColossalFramework.UI;
+﻿using ColossalFramework.UI;
 using ColossalFramework.Globalization;
 using ColossalFramework.Math;
 using UnityEngine;
@@ -39,6 +38,7 @@ namespace EnhancedOutsideConnectionsView
             public ConnectionDirection Direction;
             public ResourceType Type;
             public UIPanel OriginalPanel;
+            public UILabel OriginalDescription;
             public UIPanel Panel;
             public UISprite CheckBox;
             public UISprite ColorSprite;
@@ -70,6 +70,7 @@ namespace EnhancedOutsideConnectionsView
         private class UITotal
         {
             public ConnectionDirection Direction;
+            public UILabel OriginalLabel;
             public UIRadialChart Chart;
             public UISprite Line;
             public UILabel Text;
@@ -84,8 +85,9 @@ namespace EnhancedOutsideConnectionsView
         private static Color32 _textColorNormal;
         private static Color32 _textColorDisabled;
 
-        // initialization for UpdatePanel
-        private static bool _updatePanelInitialized = false;
+        // vars for UpdatePanel
+        private static bool _initialized = false;
+        private static string _language = "";
 
         /// <summary>
         /// initialize the user interface
@@ -114,7 +116,7 @@ namespace EnhancedOutsideConnectionsView
                     Debug.LogError("Unable to find atlas [Ingame].");
                     return false;
                 }
-
+                
                 // get the outside connections info view panel (displayed when the user clicks on the Outside Connections info view button)
                 OutsideConnectionsInfoViewPanel ocInfoViewPanel = UIView.library.Get<OutsideConnectionsInfoViewPanel>(typeof(OutsideConnectionsInfoViewPanel).Name);
                 if (ocInfoViewPanel == null)
@@ -231,7 +233,13 @@ namespace EnhancedOutsideConnectionsView
                 SetCheckBox(_exportFish,     config.ExportFish);
 
                 // not initialized
-                _updatePanelInitialized = false;
+                _initialized = false;
+
+                // save current language
+                _language = LocaleManager.instance.language;
+
+                // update label text
+                UpdateLabelText();
 
                 // success
                 return true;
@@ -267,7 +275,7 @@ namespace EnhancedOutsideConnectionsView
             }
             resource.OriginalPanel = (UIPanel)originalColorSprite.parent;
             resource.OriginalPanel.isVisible = false;
-
+            
             // set component name prefix to the direction and resource type
             string componentNamePrefix = direction.ToString() + type.ToString();
 
@@ -322,23 +330,22 @@ namespace EnhancedOutsideConnectionsView
             resource.ColorSprite.isVisible = true;
 
             // find the original description, they are all named "Type"
-            if (!Find(resource.OriginalPanel, "Type", out UILabel originalDescription)) return false;
+            if (!Find(resource.OriginalPanel, "Type", out resource.OriginalDescription)) return false;
 
             // create a new description label
             // use the same font and text attributes as the original description
             resource.Description = resource.Panel.AddUIComponent<UILabel>();
             if (resource.Description == null)
             {
-                Debug.LogError($"Unable to create count label for resource [{componentNamePrefix}] on resource panel [{resource.Panel.name}].");
+                Debug.LogError($"Unable to create description label for resource [{componentNamePrefix}] on resource panel [{resource.Panel.name}].");
                 return false;
             }
             resource.Description.name = componentNamePrefix + "Description";
-            resource.Description.text = originalDescription.text;
             resource.Description.textAlignment = UIHorizontalAlignment.Left;
             resource.Description.verticalAlignment = UIVerticalAlignment.Top;
-            resource.Description.font = originalDescription.font;
-            resource.Description.textScale = originalDescription.textScale;
-            resource.Description.textColor = originalDescription.textColor;
+            resource.Description.font = resource.OriginalDescription.font;
+            resource.Description.textScale = resource.OriginalDescription.textScale;
+            resource.Description.textColor = resource.OriginalDescription.textColor;
             resource.Description.autoSize = false;
             resource.Description.size = new Vector2(200f, 16f);
             resource.Description.relativePosition = new Vector3(resource.ColorSprite.relativePosition.x + resource.ColorSprite.size.x + 5f, 5f, 0f);
@@ -356,9 +363,9 @@ namespace EnhancedOutsideConnectionsView
             resource.Count.text = "99,999,999";
             resource.Count.textAlignment = UIHorizontalAlignment.Right;
             resource.Count.verticalAlignment = UIVerticalAlignment.Top;
-            resource.Count.font = originalDescription.font;
-            resource.Count.textScale = originalDescription.textScale;
-            resource.Count.textColor = originalDescription.textColor;
+            resource.Count.font = resource.OriginalDescription.font;
+            resource.Count.textScale = resource.OriginalDescription.textScale;
+            resource.Count.textColor = resource.OriginalDescription.textColor;
             resource.Count.autoSize = false;
             resource.Count.size = new Vector2(82f, resource.Description.size.y);
             resource.Count.relativePosition = new Vector3(resource.Panel.size.x - resource.Count.size.x - 5f, resource.Description.relativePosition.y);
@@ -411,7 +418,7 @@ namespace EnhancedOutsideConnectionsView
                         Configuration<EOCVConfiguration>.Save();
 
                         // update colors on all buildings
-                        Singleton<BuildingManager>.instance.UpdateBuildingColors();
+                        BuildingManager.instance.UpdateBuildingColors();
 
                         // done finding
                         break;
@@ -458,7 +465,7 @@ namespace EnhancedOutsideConnectionsView
                 resource.CheckBox.spriteName = "check-unchecked";
 
                 // set sprite to resource color mixed with neutral color
-                Color neutralColor = Singleton<InfoManager>.instance.m_properties.m_neutralColor;
+                Color neutralColor = InfoManager.instance.m_properties.m_neutralColor;
                 resource.ColorSprite.color = Color.Lerp(resource.ResourceColor, neutralColor, 0.5f);
 
                 // set description text to a darker shade of the normal text color
@@ -494,7 +501,7 @@ namespace EnhancedOutsideConnectionsView
 
             // get resource colors, same colors are used for both import and export
             // do not get colors from color sprites because they might not be initialized yet
-            return Singleton<TransferManager>.instance.m_properties.m_resourceColors[reason];
+            return TransferManager.instance.m_properties.m_resourceColors[reason];
         }
 
         /// <summary>
@@ -508,18 +515,8 @@ namespace EnhancedOutsideConnectionsView
 
             // hide the original total label, which contained both the total text and total count
             string originalTotalLabelName = (direction == ConnectionDirection.Import ? "ImportTotal" : "ExportTotal");
-            if (!Find(panel, originalTotalLabelName, out UILabel originalTotal)) return false;
-            originalTotal.isVisible = false;
-
-            // parse the format string for original total label to get the total text, which is everything up to but not including the left brace
-            string format = Locale.Get(originalTotal.localeID);
-            int leftBracePosition = format.IndexOf("{");
-            if (leftBracePosition == -1)
-            {
-                Debug.LogError($"Unable to find left brace in format string [{format}] of [{originalTotalLabelName}].");
-                return false;
-            }
-            string totalText = format.Substring(0, leftBracePosition).Trim();
+            if (!Find(panel, originalTotalLabelName, out total.OriginalLabel)) return false;
+            total.OriginalLabel.isVisible = false;
 
             // hide original radial chart
             string originalChartName = (direction == ConnectionDirection.Import ? "ImportChart" : "ExportChart");
@@ -591,7 +588,6 @@ namespace EnhancedOutsideConnectionsView
                 return false;
             }
             total.Text.name = componentNamePrefix + "Text";
-            total.Text.text = totalText;
             total.Text.textAlignment = UIHorizontalAlignment.Right;
             total.Text.verticalAlignment = UIVerticalAlignment.Top;
             total.Text.font = lastResource.Count.font;
@@ -671,7 +667,7 @@ namespace EnhancedOutsideConnectionsView
             try
             {
                 // check conditions
-                if (!_updatePanelInitialized)
+                if (!_initialized)
                 {
                     // hide the original resource panels
                     // must do this here because the visibility gets set by the base processing according to owned DLC when the OC info view panel is first displayed
@@ -680,25 +676,25 @@ namespace EnhancedOutsideConnectionsView
                     _exportFish.OriginalPanel.isVisible = false;
 
                     // initialized
-                    _updatePanelInitialized = true;
+                    _initialized = true;
                 }
 
                 // info mode can change, make sure info mode is still outside connections
-                if (!Singleton<InfoManager>.exists)
+                if (!InfoManager.exists)
                 {
                     return;
                 }
-                if (Singleton<InfoManager>.instance.CurrentMode != InfoManager.InfoMode.Connections)
+                if (InfoManager.instance.CurrentMode != InfoManager.InfoMode.Connections)
                 {
                     return;
                 }
 
                 // logic copied from OutsideConnectionsInfoViewPanel.UpdatePanel and then deselected resources are set to zero
-                if (!Singleton<DistrictManager>.exists)
+                if (!DistrictManager.exists)
                 {
                     return;
                 }
-                DistrictManager instance = Singleton<DistrictManager>.instance;
+                DistrictManager instance = DistrictManager.instance;
 
                 // get import values
                 DistrictResourceData importData = instance.m_districts.m_buffer[0].m_importData;
@@ -779,6 +775,13 @@ namespace EnhancedOutsideConnectionsView
                     GetValue(exportOil,      exportTotal),
                     GetValue(exportMail,     exportTotal),
                     GetValue(exportFish,     exportTotal));
+
+                // if language changed, update text labels
+                if (LocaleManager.instance.language != _language)
+                {
+                    UpdateLabelText();
+                    _language = LocaleManager.instance.language;
+                }
             }
             catch (Exception ex)
             {
@@ -797,6 +800,50 @@ namespace EnhancedOutsideConnectionsView
         }
 
         /// <summary>
+        /// update text on labels
+        /// </summary>
+        private static void UpdateLabelText()
+        {
+            try
+            {
+                // for each resource, copy the text from the original description label
+                _importGoods.Description.text = _importGoods.OriginalDescription.text;
+                _importForestry.Description.text = _importForestry.OriginalDescription.text;
+                _importFarming.Description.text = _importFarming.OriginalDescription.text;
+                _importOre.Description.text = _importOre.OriginalDescription.text;
+                _importOil.Description.text = _importOil.OriginalDescription.text;
+                _importMail.Description.text = _importMail.OriginalDescription.text;
+
+                _exportGoods.Description.text = _exportGoods.OriginalDescription.text;
+                _exportForestry.Description.text = _exportForestry.OriginalDescription.text;
+                _exportFarming.Description.text = _exportFarming.OriginalDescription.text;
+                _exportOre.Description.text = _exportOre.OriginalDescription.text;
+                _exportOil.Description.text = _exportOil.OriginalDescription.text;
+                _exportMail.Description.text = _exportMail.OriginalDescription.text;
+                _exportFish.Description.text = _exportFish.OriginalDescription.text;
+
+                // for each total, parse the format string for original total label to get the total text, which is everything up to but not including the left brace
+                string format = Locale.Get(_importTotal.OriginalLabel.localeID);
+                int leftBracePosition = format.IndexOf("{");
+                if (leftBracePosition >= 0)
+                {
+                    _importTotal.Text.text = format.Substring(0, leftBracePosition).Trim();
+                }
+
+                format = Locale.Get(_exportTotal.OriginalLabel.localeID);
+                leftBracePosition = format.IndexOf("{");
+                if (leftBracePosition >= 0)
+                {
+                    _exportTotal.Text.text = format.Substring(0, leftBracePosition).Trim();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+        }
+
+        /// <summary>
         /// return the color of the building
         /// </summary>
         /// <returns>whether or not to do base processing</returns>
@@ -804,231 +851,222 @@ namespace EnhancedOutsideConnectionsView
         {
             try
             {
+                // get info view sub mode
+                InfoManager.SubInfoMode subMode = InfoManager.instance.CurrentSubMode;
+
                 // get the building AI type
-                Type buildingAIType = data.Info.m_buildingAI.GetType();
-                string buildingAITypeString = buildingAIType.ToString();
-
-                // the logic for each building AI below was derived from the GetColor method of that AI, unless specified otherwise
-                // must include derived building AIs, even though no patch was created, so that they get handled same as the base building AI
-
-                if (buildingAIType == typeof(CommercialBuildingAI) ||
-                    buildingAITypeString == "PloppableRICO.GrowableCommercialAI" ||     // derives from CommercialBuildingAI
-                    buildingAITypeString == "PloppableRICO.PloppableCommercialAI")      // derives from PloppableRICO.GrowableCommercialAI
+                Type aiType = data.Info.m_buildingAI.GetType();
+                while (aiType != null)
                 {
-                    // import only, not sure if the incoming resource will ever be other than Goods
-                    if (Singleton<InfoManager>.instance.CurrentSubMode == InfoManager.SubInfoMode.Import)
-                        return GetColorFromTransferReason(((CommercialBuildingAI)data.Info.m_buildingAI).m_incomingResource, ref color);
-                    else
-                        return true;
-                }
-
-                if (buildingAIType == typeof(IndustrialExtractorAI) ||
-                    buildingAIType == typeof(LivestockExtractorAI) ||                   // derives from IndustrialExtractorAI
-                    buildingAITypeString == "PloppableRICO.GrowableExtractorAI" ||      // derives from IndustrialExtractorAI
-                    buildingAITypeString == "PloppableRICO.PloppableExtractorAI")       // derives from PloppableRICO.GrowableExtractorAI
-                {
-                    // export only
-                    if (Singleton<InfoManager>.instance.CurrentSubMode == InfoManager.SubInfoMode.Import)
-                        return true;
-                    else
+                    // the logic for each building AI below was derived from the GetColor method of that AI, unless specified otherwise
+                    // derived building AIs (e.g. from PloppableRICO) get handled same as base building AI
+                    if (aiType == typeof(CommercialBuildingAI ))
                     {
-                        // logic is from IndustrialExtractorAI.GetOutgoingTransferReason
+                        // import only, not sure if the incoming resource will ever be other than Goods
+                        if (subMode == InfoManager.SubInfoMode.Import)
+                            return GetColorFromTransferReason(((CommercialBuildingAI)data.Info.m_buildingAI).m_incomingResource, ref color);
+                        else
+                            return true;
+                    }
+
+                    if (aiType == typeof(IndustrialExtractorAI))
+                    {
+                        // export only
+                        if (subMode == InfoManager.SubInfoMode.Import)
+                            return true;
+                        else
+                        {
+                            // logic is from IndustrialExtractorAI.GetOutgoingTransferReason
+                            // convert item subservice to a transfer reason
+                            TransferManager.TransferReason transferReason;
+                            switch (data.Info.m_class.m_subService)
+                            {
+                                case ItemClass.SubService.IndustrialForestry: transferReason = TransferManager.TransferReason.Logs;  break;
+                                case ItemClass.SubService.IndustrialFarming:  transferReason = TransferManager.TransferReason.Grain; break;
+                                case ItemClass.SubService.IndustrialOre:      transferReason = TransferManager.TransferReason.Ore;   break;
+                                case ItemClass.SubService.IndustrialOil:      transferReason = TransferManager.TransferReason.Oil;   break;
+                                default:                                      transferReason = TransferManager.TransferReason.None;  break;
+                            }
+
+                            // get the color based on transfer reason
+                            return GetColorFromTransferReason(transferReason, ref color);
+                        }
+                    }
+
+                    if (aiType == typeof(IndustrialBuildingAI))
+                    {
+                        // both import and export
                         // convert item subservice to a transfer reason
                         TransferManager.TransferReason transferReason;
-                        switch (data.Info.m_class.m_subService)
+                        if (subMode == InfoManager.SubInfoMode.Import)
                         {
-                            case ItemClass.SubService.IndustrialForestry: transferReason = TransferManager.TransferReason.Logs;  break;
-                            case ItemClass.SubService.IndustrialFarming:  transferReason = TransferManager.TransferReason.Grain; break;
-                            case ItemClass.SubService.IndustrialOre:      transferReason = TransferManager.TransferReason.Ore;   break;
-                            case ItemClass.SubService.IndustrialOil:      transferReason = TransferManager.TransferReason.Oil;   break;
-                            default:                                      transferReason = TransferManager.TransferReason.None;  break;
+                            // logic is from IndustrialBuildingAI.GetIncomingTransferReason
+                            switch (data.Info.m_class.m_subService)
+                            {
+                                case ItemClass.SubService.IndustrialForestry: transferReason = TransferManager.TransferReason.Logs;  break;
+                                case ItemClass.SubService.IndustrialFarming:  transferReason = TransferManager.TransferReason.Grain; break;
+                                case ItemClass.SubService.IndustrialOre:      transferReason = TransferManager.TransferReason.Ore;   break;
+                                case ItemClass.SubService.IndustrialOil:      transferReason = TransferManager.TransferReason.Oil;   break;
+                                default:
+                                    // if the subservice is not one of the above, then the resource type is assigned randomly based on the buildingID
+                                    switch (new Randomizer(buildingID).Int32(4u))
+                                    {
+                                        case 0:  transferReason = TransferManager.TransferReason.Lumber; break;
+                                        case 1:  transferReason = TransferManager.TransferReason.Food;   break;
+                                        case 2:  transferReason = TransferManager.TransferReason.Petrol; break;
+                                        case 3:  transferReason = TransferManager.TransferReason.Coal;   break;
+                                        default: transferReason = TransferManager.TransferReason.None;   break;
+                                    }
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            // logic is from IndustrialBuildingAI.GetOutgoingTransferReason
+                            switch (data.Info.m_class.m_subService)
+                            {
+                                case ItemClass.SubService.IndustrialForestry: transferReason = TransferManager.TransferReason.Lumber; break;
+                                case ItemClass.SubService.IndustrialFarming:  transferReason = TransferManager.TransferReason.Food;   break;
+                                case ItemClass.SubService.IndustrialOre:      transferReason = TransferManager.TransferReason.Coal;   break;
+                                case ItemClass.SubService.IndustrialOil:      transferReason = TransferManager.TransferReason.Petrol; break;
+                                default:                                      transferReason = TransferManager.TransferReason.Goods;  break;
+                            }
                         }
 
                         // get the color based on transfer reason
                         return GetColorFromTransferReason(transferReason, ref color);
                     }
-                }
 
-                if (buildingAIType == typeof(IndustrialBuildingAI) ||
-                    buildingAITypeString == "PloppableRICO.GrowableIndustrialAI" ||     // derives from IndustrialBuildingAI
-                    buildingAITypeString == "PloppableRICO.PloppableIndustrialAI")      // derives from PloppableRICO.GrowableIndustrialAI
-                {
-                    // both import and export
-                    // convert item subservice to a transfer reason
-                    TransferManager.TransferReason transferReason;
-                    if (Singleton<InfoManager>.instance.CurrentSubMode == InfoManager.SubInfoMode.Import)
+                    if (aiType == typeof(OfficeBuildingAI))
                     {
-                        // logic is from IndustrialBuildingAI.GetIncomingTransferReason
-                        switch (data.Info.m_class.m_subService)
+                        // export only
+                        if (subMode == InfoManager.SubInfoMode.Import)
+                            return true;
+                        else
                         {
-                            case ItemClass.SubService.IndustrialForestry: transferReason = TransferManager.TransferReason.Logs;  break;
-                            case ItemClass.SubService.IndustrialFarming:  transferReason = TransferManager.TransferReason.Grain; break;
-                            case ItemClass.SubService.IndustrialOre:      transferReason = TransferManager.TransferReason.Ore;   break;
-                            case ItemClass.SubService.IndustrialOil:      transferReason = TransferManager.TransferReason.Oil;   break;
-                            default:
-                                // if the subservice is not one of the above, then the resource type is assigned randomly based on the buildingID
-                                switch (new Randomizer(buildingID).Int32(4u))
-                                {
-                                    case 0:  transferReason = TransferManager.TransferReason.Lumber; break;
-                                    case 1:  transferReason = TransferManager.TransferReason.Food;   break;
-                                    case 2:  transferReason = TransferManager.TransferReason.Petrol; break;
-                                    case 3:  transferReason = TransferManager.TransferReason.Coal;   break;
-                                    default: transferReason = TransferManager.TransferReason.None;   break;
-                                }
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        // logic is from IndustrialBuildingAI.GetOutgoingTransferReason
-                        switch (data.Info.m_class.m_subService)
-                        {
-                            case ItemClass.SubService.IndustrialForestry: transferReason = TransferManager.TransferReason.Lumber; break;
-                            case ItemClass.SubService.IndustrialFarming:  transferReason = TransferManager.TransferReason.Food;   break;
-                            case ItemClass.SubService.IndustrialOre:      transferReason = TransferManager.TransferReason.Coal;   break;
-                            case ItemClass.SubService.IndustrialOil:      transferReason = TransferManager.TransferReason.Petrol; break;
-                            default:                                      transferReason = TransferManager.TransferReason.Goods;  break;
+                            // logic is from OfficeBuildingAI.GetOutgoingTransferReason
+                            if (data.Info.m_class.m_subService == ItemClass.SubService.OfficeHightech)
+                                return GetColorFromTransferReason(TransferManager.TransferReason.Goods, ref color);
+                            else
+                                return GetColorFromTransferReason(TransferManager.TransferReason.None, ref color);
                         }
                     }
 
-                    // get the color based on transfer reason
-                    return GetColorFromTransferReason(transferReason, ref color);
-                }
-
-                if (buildingAIType == typeof(OfficeBuildingAI) ||
-                    buildingAITypeString == "PloppableRICO.GrowableOfficeAI" ||     // derives from OfficeBuildingAI
-                    buildingAITypeString == "PloppableRICO.PloppableOfficeAI")      // derives from PloppableRICO.GrowableOfficeAI
-                {
-                    // export only
-                    if (Singleton<InfoManager>.instance.CurrentSubMode == InfoManager.SubInfoMode.Import)
-                        return true;
-                    else
+                    if (aiType == typeof(PowerPlantAI))
                     {
-                        // logic is from OfficeBuildingAI.GetOutgoingTransferReason
-                        if (data.Info.m_class.m_subService == ItemClass.SubService.OfficeHightech)
+                        // import only
+                        // some buildings with PowerPlantAI have a real resource type (e.g. Coal or Oil) and some have None
+                        // building AIs that derive from PowerPlantAI do not have their own GetColor routine and have a resource type of None
+                        if (subMode == InfoManager.SubInfoMode.Import)
+                            return GetColorFromTransferReason(((PowerPlantAI)data.Info.m_buildingAI).m_resourceType, ref color);
+                        else
+                            return true;
+                    }
+
+                    if (aiType == typeof(ExtractingFacilityAI))
+                    {
+                        // export only
+                        if (subMode == InfoManager.SubInfoMode.Import)
+                            return true;
+                        else
+                            return GetColorFromTransferReason(((ExtractingFacilityAI)data.Info.m_buildingAI).m_outputResource, ref color);
+                    }
+
+                    if (aiType == typeof(FishFarmAI))
+                    {
+                        // export only, not sure if the output resource will ever be other than Fish
+                        if (subMode == InfoManager.SubInfoMode.Import)
+                            return true;
+                        else
+                            return GetColorFromTransferReason(((FishFarmAI)data.Info.m_buildingAI).m_outputResource, ref color);
+                    }
+
+                    if (aiType == typeof(FishingHarborAI))
+                    {
+                        // export only, not sure if output resource will ever be other than Fish
+                        if (subMode == InfoManager.SubInfoMode.Import)
+                            return true;
+                        else
+                            return GetColorFromTransferReason(((FishingHarborAI)data.Info.m_buildingAI).m_outputResource, ref color);
+                    }
+
+                    if (aiType == typeof(HeatingPlantAI))
+                    {
+                        // import only, not sure if the incoming resource will ever be other than Oil
+                        if (subMode == InfoManager.SubInfoMode.Import)
+                            return GetColorFromTransferReason(((HeatingPlantAI)data.Info.m_buildingAI).m_resourceType, ref color);
+                        else
+                            return true;
+                    }
+
+                    if (aiType == typeof(MarketAI))
+                    {
+                        // import only, not sure if the incoming resource will ever be other than Fish
+                        // even though MarketAI has a GetColor routine with import logic for outside connections,
+                        // it seems thru experimentation that fish will never be imported to the Market
+                        if (subMode == InfoManager.SubInfoMode.Import)
+                            return GetColorFromTransferReason(((MarketAI)data.Info.m_buildingAI).m_incomingResource, ref color);
+                        else
+                            return true;
+                    }
+
+                    if (aiType == typeof(PostOfficeAI))
+                    {
+                        // both import and export
+                        // note that the resource colors for SortedMail and UnsortedMail are the same as for Mail
+                        if (subMode == InfoManager.SubInfoMode.Import)
+                            return GetColorFromTransferReason(TransferManager.TransferReason.SortedMail, ref color);
+                        else
+                            return GetColorFromTransferReason(TransferManager.TransferReason.UnsortedMail, ref color);
+                    }
+
+                    if (aiType == typeof(ProcessingFacilityAI))
+                    {
+                        // both import and export
+                        TransferManager.TransferReason transferReason;
+                        if (subMode == InfoManager.SubInfoMode.Import)
+                        {
+                            // check input resources
+                            ProcessingFacilityAI buildingAI = data.Info.m_buildingAI as ProcessingFacilityAI;
+                            if      (buildingAI.m_inputResource1 != TransferManager.TransferReason.None && ((uint)(data.m_tempImport | data.m_finalImport) & 1u) != 0)
+                                transferReason = buildingAI.m_inputResource1;
+                            else if (buildingAI.m_inputResource2 != TransferManager.TransferReason.None && ((uint)(data.m_tempImport | data.m_finalImport) & 2u) != 0)
+                                transferReason = buildingAI.m_inputResource2;
+                            else if (buildingAI.m_inputResource3 != TransferManager.TransferReason.None && ((uint)(data.m_tempImport | data.m_finalImport) & 4u) != 0)
+                                transferReason = buildingAI.m_inputResource3;
+                            else if (buildingAI.m_inputResource4 != TransferManager.TransferReason.None && ((uint)(data.m_tempImport | data.m_finalImport) & 8u) != 0)
+                                transferReason = buildingAI.m_inputResource4;
+                            else
+                                transferReason = TransferManager.TransferReason.None;
+                        }
+                        else
+                        {
+                            // always use output resource
+                            transferReason = ((ProcessingFacilityAI)data.Info.m_buildingAI).m_outputResource;
+                        }
+
+                        // get the color based on transfer reason
+                        return GetColorFromTransferReason(transferReason, ref color);
+                    }
+
+                    if (aiType == typeof(ShelterAI))
+                    {
+                        // import only, always Goods
+                        if (subMode == InfoManager.SubInfoMode.Import)
                             return GetColorFromTransferReason(TransferManager.TransferReason.Goods, ref color);
                         else
-                            return GetColorFromTransferReason(TransferManager.TransferReason.None, ref color);
+                            return true;
                     }
-                }
 
-
-                if (buildingAIType == typeof(ExtractingFacilityAI))
-                {
-                    // export only
-                    if (Singleton<InfoManager>.instance.CurrentSubMode == InfoManager.SubInfoMode.Import)
-                        return true;
-                    else
-                        return GetColorFromTransferReason(((ExtractingFacilityAI)data.Info.m_buildingAI).m_outputResource, ref color);
-                }
-
-                if (buildingAIType == typeof(FishFarmAI))
-                {
-                    // export only, not sure if the output resource will ever be other than Fish
-                    if (Singleton<InfoManager>.instance.CurrentSubMode == InfoManager.SubInfoMode.Import)
-                        return true;
-                    else
-                        return GetColorFromTransferReason(((FishFarmAI)data.Info.m_buildingAI).m_outputResource, ref color);
-                }
-
-                if (buildingAIType == typeof(FishingHarborAI))
-                {
-                    // export only, not sure if output resource will ever be other than Fish
-                    if (Singleton<InfoManager>.instance.CurrentSubMode == InfoManager.SubInfoMode.Import)
-                        return true;
-                    else
-                        return GetColorFromTransferReason(((FishingHarborAI)data.Info.m_buildingAI).m_outputResource, ref color);
-                }
-
-                if (buildingAIType == typeof(HeatingPlantAI))
-                {
-                    // import only, not sure if the incoming resource will ever be other than Oil
-                    if (Singleton<InfoManager>.instance.CurrentSubMode == InfoManager.SubInfoMode.Import)
-                        return GetColorFromTransferReason(((HeatingPlantAI)data.Info.m_buildingAI).m_resourceType, ref color);
-                    else
-                        return true;
-                }
-
-                if (buildingAIType == typeof(MarketAI))
-                {
-                    // import only, not sure if the incoming resource will ever be other than Fish
-                    // even though MarketAI has a GetColor routine with import logic for outside connections,
-                    // it seems thru experimentation that fish will never be imported to the Market
-                    if (Singleton<InfoManager>.instance.CurrentSubMode == InfoManager.SubInfoMode.Import)
-                        return GetColorFromTransferReason(((MarketAI)data.Info.m_buildingAI).m_incomingResource, ref color);
-                    else
-                        return true;
-                }
-
-                if (buildingAIType == typeof(PostOfficeAI))
-                {
-                    // both import and export
-                    // note that the resource colors for SortedMail and UnsortedMail are the same as for Mail
-                    if (Singleton<InfoManager>.instance.CurrentSubMode == InfoManager.SubInfoMode.Import)
-                        return GetColorFromTransferReason(TransferManager.TransferReason.SortedMail, ref color);
-                    else
-                        return GetColorFromTransferReason(TransferManager.TransferReason.UnsortedMail, ref color);
-                }
-
-                if (buildingAIType == typeof(PowerPlantAI      ) ||
-                    buildingAIType == typeof(DamPowerHouseAI   ) ||    // derives from PowerPlantAI
-                    buildingAIType == typeof(FusionPowerPlantAI) ||    // derives from PowerPlantAI
-                    buildingAIType == typeof(SolarPowerPlantAI ) ||    // derives from PowerPlantAI
-                    buildingAIType == typeof(WindTurbineAI     ))      // derives from PowerPlantAI
-                {
-                    // import only
-                    // some buildings with PowerPlantAI have a real resource type (e.g. Coal or Oil) and some have None
-                    // building AIs that derive from PowerPlantAI do not have their own GetColor routine and have a resource type of None
-                    if (Singleton<InfoManager>.instance.CurrentSubMode == InfoManager.SubInfoMode.Import)
-                        return GetColorFromTransferReason(((PowerPlantAI)data.Info.m_buildingAI).m_resourceType, ref color);
-                    else
-                        return true;
-                }
-
-                if (buildingAIType == typeof(ProcessingFacilityAI) ||
-                    buildingAIType == typeof(UniqueFactoryAI     ))     // derives from ProcessingFacilityAI
-                {
-                    // both import and export
-                    TransferManager.TransferReason transferReason;
-                    if (Singleton<InfoManager>.instance.CurrentSubMode == InfoManager.SubInfoMode.Import)
+                    if (aiType == typeof(WarehouseAI))
                     {
-                        // check input resources
-                        ProcessingFacilityAI buildingAI = data.Info.m_buildingAI as ProcessingFacilityAI;
-                        if      (buildingAI.m_inputResource1 != TransferManager.TransferReason.None && ((uint)(data.m_tempImport | data.m_finalImport) & 1u) != 0)
-                            transferReason = buildingAI.m_inputResource1;
-                        else if (buildingAI.m_inputResource2 != TransferManager.TransferReason.None && ((uint)(data.m_tempImport | data.m_finalImport) & 2u) != 0)
-                            transferReason = buildingAI.m_inputResource2;
-                        else if (buildingAI.m_inputResource3 != TransferManager.TransferReason.None && ((uint)(data.m_tempImport | data.m_finalImport) & 4u) != 0)
-                            transferReason = buildingAI.m_inputResource3;
-                        else if (buildingAI.m_inputResource4 != TransferManager.TransferReason.None && ((uint)(data.m_tempImport | data.m_finalImport) & 8u) != 0)
-                            transferReason = buildingAI.m_inputResource4;
-                        else
-                            transferReason = TransferManager.TransferReason.None;
-                    }
-                    else
-                    {
-                        // always use output resource
-                        transferReason = ((ProcessingFacilityAI)data.Info.m_buildingAI).m_outputResource;
+                        // both import and export
+                        // import and export both use the same actual resource
+                        return GetColorFromTransferReason(((WarehouseAI)data.Info.m_buildingAI).GetActualTransferReason(buildingID, ref data), ref color);
                     }
 
-                    // get the color based on transfer reason
-                    return GetColorFromTransferReason(transferReason, ref color);
-                }
-
-                if (buildingAIType == typeof(ShelterAI))
-                {
-                    // import only, always Goods
-                    if (Singleton<InfoManager>.instance.CurrentSubMode == InfoManager.SubInfoMode.Import)
-                        return GetColorFromTransferReason(TransferManager.TransferReason.Goods, ref color);
-                    else
-                        return true;
-                }
-
-                if (buildingAIType == typeof(WarehouseAI))
-                {
-                    // both import and export
-                    // import and export both use the same actual resource
-                    return GetColorFromTransferReason(((WarehouseAI)data.Info.m_buildingAI).GetActualTransferReason(buildingID, ref data), ref color);
+                    // get base type
+                    aiType = aiType.BaseType;
                 }
 
                 // buildingID zero is when a building is being placed while the info view panel is still displayed
@@ -1038,7 +1076,7 @@ namespace EnhancedOutsideConnectionsView
                 }
 
                 // if get here then a building AI patch was created without adding logic above for the AI
-                Debug.LogError($"Unhandled building AI type [{buildingAIType}] for building ID [{buildingID}] while getting building color.");
+                Debug.LogError($"Unhandled building AI type [{data.Info.m_buildingAI.GetType()}] for building ID [{buildingID}] while getting building color.");
             }
             catch (Exception ex)
             {
@@ -1173,7 +1211,7 @@ namespace EnhancedOutsideConnectionsView
             }
 
             // find the resource for the currently displayed import/export direction and for the specified resource type
-            ConnectionDirection direction = (Singleton<InfoManager>.instance.CurrentSubMode == InfoManager.SubInfoMode.Import ? ConnectionDirection.Import : ConnectionDirection.Export);
+            ConnectionDirection direction = (InfoManager.instance.CurrentSubMode == InfoManager.SubInfoMode.Import ? ConnectionDirection.Import : ConnectionDirection.Export);
             foreach (UIResource resource in _resources)
             {
                 if (resource.Direction == direction && resource.Type == type)
@@ -1187,7 +1225,7 @@ namespace EnhancedOutsideConnectionsView
                     else
                     {
                         // resource is turned off: set the color to neutral and skip base processing
-                        color = Singleton<InfoManager>.instance.m_properties.m_neutralColor;
+                        color = InfoManager.instance.m_properties.m_neutralColor;
                         return false;
                     }
                 }
@@ -1233,7 +1271,7 @@ namespace EnhancedOutsideConnectionsView
                 DestroyTotal(_exportTotal);
 
                 // no longer initialized
-                _updatePanelInitialized = false;
+                _initialized = false;
             }
             catch (Exception ex)
             {
@@ -1289,6 +1327,5 @@ namespace EnhancedOutsideConnectionsView
                 component = null;
             }
         }
-
     }
 }
