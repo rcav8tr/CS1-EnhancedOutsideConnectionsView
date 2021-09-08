@@ -1,5 +1,4 @@
-﻿using UnityEngine;
-using CitiesHarmony.API;
+﻿using CitiesHarmony.API;
 using HarmonyLib;
 using System.Reflection;
 using System;
@@ -22,7 +21,8 @@ namespace EnhancedOutsideConnectionsView
             if (!HarmonyHelper.IsHarmonyInstalled)
             {
                 ColossalFramework.UI.UIView.library.ShowModal<ExceptionPanel>("ExceptionPanel").SetMessage("Missing Dependency",
-                    "The Enhanced Outside Connections View mod requires the 'Harmony (Mod Dependency)' mod.  \n\nPlease subscribe to the 'Harmony (Mod Dependency)' mod and restart the game.", error: false);
+                    "The Enhanced Outside Connections View mod requires the 'Harmony (Mod Dependency)' mod." + Environment.NewLine + Environment.NewLine + 
+                    "Please subscribe to the 'Harmony (Mod Dependency)' mod and restart the game.", error: false);
                 return false;
             }
 
@@ -50,7 +50,7 @@ namespace EnhancedOutsideConnectionsView
             MethodInfo originalMethod = originalType.GetMethod(originalMethodName, bindingFlags);
             if (originalMethod == null)
             {
-                Debug.LogError($"Unable to find original method {originalType.Name}.{originalMethodName}.");
+                LogUtil.LogError($"Unable to find original method {originalType.Name}.{originalMethodName}.");
                 return false;
             }
 
@@ -58,7 +58,7 @@ namespace EnhancedOutsideConnectionsView
             MethodInfo prefixMethod = prefixType.GetMethod(prefixMethodName, BindingFlags.Static | BindingFlags.Public);
             if (prefixMethod == null)
             {
-                Debug.LogError($"Unable to find patch prefix method {prefixType.Name}.{prefixMethodName}.");
+                LogUtil.LogError($"Unable to find patch prefix method {prefixType.Name}.{prefixMethodName}.");
                 return false;
             }
 
@@ -86,7 +86,7 @@ namespace EnhancedOutsideConnectionsView
             MethodInfo originalMethod = originalType.GetMethod(originalMethodName, new Type[] { typeof(ushort), typeof(Vehicle).MakeByRefType(), typeof(InfoManager.InfoMode) });
             if (originalMethod == null)
             {
-                Debug.LogError($"Unable to find original method {originalType.Name}.{originalMethodName}.");
+                LogUtil.LogError($"Unable to find original method {originalType.Name}.{originalMethodName}.");
                 return false;
             }
 
@@ -94,7 +94,7 @@ namespace EnhancedOutsideConnectionsView
             MethodInfo prefixMethod = prefixType.GetMethod(prefixMethodName, BindingFlags.Static | BindingFlags.Public);
             if (prefixMethod == null)
             {
-                Debug.LogError($"Unable to find patch prefix method {prefixType.Name}.{prefixMethodName}.");
+                LogUtil.LogError($"Unable to find patch prefix method {prefixType.Name}.{prefixMethodName}.");
                 return false;
             }
 
@@ -120,7 +120,7 @@ namespace EnhancedOutsideConnectionsView
             MethodInfo originalMethod = originalType.GetMethod(originalMethodName, bindingFlags);
             if (originalMethod == null)
             {
-                Debug.LogError($"Unable to find original method {originalType.Name}.{originalMethodName}.");
+                LogUtil.LogError($"Unable to find original method {originalType.Name}.{originalMethodName}.");
                 return false;
             }
 
@@ -128,7 +128,7 @@ namespace EnhancedOutsideConnectionsView
             MethodInfo postfixMethod = postfixType.GetMethod(postfixMethodName, BindingFlags.Static | BindingFlags.Public);
             if (postfixMethod == null)
             {
-                Debug.LogError($"Unable to find patch postfix method {postfixType.Name}.{postfixMethodName}.");
+                LogUtil.LogError($"Unable to find patch postfix method {postfixType.Name}.{postfixMethodName}.");
                 return false;
             }
 
@@ -153,7 +153,7 @@ namespace EnhancedOutsideConnectionsView
             }
             catch (Exception ex)
             {
-                Debug.LogException(ex);
+                LogUtil.LogException(ex);
             }
         }
     }

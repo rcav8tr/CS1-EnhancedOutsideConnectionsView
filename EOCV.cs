@@ -7,11 +7,13 @@ namespace EnhancedOutsideConnectionsView
     {
         // required name and description of this mod
         public string Name => "Enhanced Outside Connections View";
-        public string Description => "Show or hide resources on the Outside Connections info view";
+        public string Description => "Show or hide resources, show resource values, and graph resources over time";
 
+        /// <summary>
+        /// make sure Harnoy is installed
+        /// </summary>
         public void OnEnabled()
         {
-            // check Harmony
             HarmonyHelper.EnsureHarmonyInstalled();
         }
     }

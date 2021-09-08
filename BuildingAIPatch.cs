@@ -281,7 +281,7 @@ namespace EnhancedOutsideConnectionsView
             // do processing for this mod only for Outside Connections info view
             if (infoMode == InfoManager.InfoMode.Connections)
             {
-                return EOCVUserInterface.GetBuildingColor(buildingID, ref data, ref __result);
+                return EOCVUserInterface.instance.GetBuildingColor(buildingID, ref data, ref __result);
             }
 
             // do the base processing

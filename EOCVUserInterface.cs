@@ -10,17 +10,22 @@ namespace EnhancedOutsideConnectionsView
     /// <summary>
     /// handle all user interface functions
     /// </summary>
-    public static class EOCVUserInterface
+    public sealed class EOCVUserInterface
     {
+        // use singleton pattern
+        private static readonly EOCVUserInterface _instance = new EOCVUserInterface();
+        public static EOCVUserInterface instance { get { return _instance; } }
+        private EOCVUserInterface() { }
+
         // import vs export
-        private enum ConnectionDirection
+        public enum ConnectionDirection
         {
             Import,
             Export
         }
 
         // resources
-        private enum ResourceType
+        public enum ResourceType
         {
             None,
             Goods,
@@ -48,24 +53,24 @@ namespace EnhancedOutsideConnectionsView
         }
 
         // the individual resources
-        private static UIResource _importGoods;
-        private static UIResource _importForestry;
-        private static UIResource _importFarming;
-        private static UIResource _importOre;
-        private static UIResource _importOil;
-        private static UIResource _importMail;
+        private UIResource _importGoods;
+        private UIResource _importForestry;
+        private UIResource _importFarming;
+        private UIResource _importOre;
+        private UIResource _importOil;
+        private UIResource _importMail;
 
-        private static UIResource _exportGoods;
-        private static UIResource _exportForestry;
-        private static UIResource _exportFarming;
-        private static UIResource _exportOre;
-        private static UIResource _exportOil;
-        private static UIResource _exportMail;
-        private static UIResource _exportFish;
+        private UIResource _exportGoods;
+        private UIResource _exportForestry;
+        private UIResource _exportFarming;
+        private UIResource _exportOre;
+        private UIResource _exportOil;
+        private UIResource _exportMail;
+        private UIResource _exportFish;
 
         // a list of the resources
-        private static List<UIResource> _resources;
-
+        private List<UIResource> _resources;
+        
         // UI information for a total
         private class UITotal
         {
@@ -78,22 +83,31 @@ namespace EnhancedOutsideConnectionsView
         }
 
         // the two totals
-        private static UITotal _importTotal;
-        private static UITotal _exportTotal;
+        private UITotal _importTotal;
+        private UITotal _exportTotal;
 
         // text colors
-        private static Color32 _textColorNormal;
-        private static Color32 _textColorDisabled;
+        private Color32 _textColorNormal;
+        private Color32 _textColorDisabled;
 
         // vars for UpdatePanel
-        private static bool _initialized = false;
-        private static string _language = "";
+        private bool _initialized;
+        private string _language;
+
+        // the import/export chart titles
+        private UILabel _importChartTitle;
+        private UILabel _exportChartTitle;
+
+        // resource history
+        private UISprite _historyButton;
+        private EOCVHistoryPanel _historyPanel;
 
         /// <summary>
         /// initialize the user interface
+        /// with singleton pattern, all fields must be initialized or they will contain data from the previous game
         /// </summary>
         /// <returns>success status</returns>
-        public static bool Initialize()
+        public bool Initialize()
         {
             try
             {
@@ -113,7 +127,7 @@ namespace EnhancedOutsideConnectionsView
                 }
                 if (ingameAtlas == null)
                 {
-                    Debug.LogError("Unable to find atlas [Ingame].");
+                    LogUtil.LogError("Unable to find atlas [Ingame].");
                     return false;
                 }
                 
@@ -121,7 +135,7 @@ namespace EnhancedOutsideConnectionsView
                 OutsideConnectionsInfoViewPanel ocInfoViewPanel = UIView.library.Get<OutsideConnectionsInfoViewPanel>(typeof(OutsideConnectionsInfoViewPanel).Name);
                 if (ocInfoViewPanel == null)
                 {
-                    Debug.LogError("Unable to find [OutsideConnectionsInfoViewPanel].");
+                    LogUtil.LogError("Unable to find [OutsideConnectionsInfoViewPanel].");
                     return false;
                 }
 
@@ -133,6 +147,10 @@ namespace EnhancedOutsideConnectionsView
                 // these are the main import/export panels that the base processing shows/hides when the Import/Export tabs are clicked
                 if (!FindImportExportPanel(ocInfoViewPanel, "Import", out UIPanel importPanel)) return false;
                 if (!FindImportExportPanel(ocInfoViewPanel, "Export", out UIPanel exportPanel)) return false;
+
+                // find the import/export chart title labels
+                if (!Find(importPanel, "ImportChartTitle", out _importChartTitle)) return false;
+                if (!Find(exportPanel, "ExportChartTitle", out _exportChartTitle)) return false;
 
                 // find the import/export legend panels
                 // this is the panel filling the bottom portion of the import/export panel that has the text "Legend" at the top of the panel
@@ -147,7 +165,7 @@ namespace EnhancedOutsideConnectionsView
                 // moving the legend panels up does NOT change the height, so increase legend panel height by the amount moved up
                 importLegendPanel.size = new Vector2(importLegendPanel.size.x, importLegendPanel.size.y + MoveLegend);
                 exportLegendPanel.size = new Vector2(exportLegendPanel.size.x, exportLegendPanel.size.y + MoveLegend);
-
+                
                 // create the resources on each legend panel
                 _resources = new List<UIResource>();
                 const float ResourcePanelTopStart = 20f;
@@ -232,32 +250,83 @@ namespace EnhancedOutsideConnectionsView
                 SetCheckBox(_exportMail,     config.ExportMail);
                 SetCheckBox(_exportFish,     config.ExportFish);
 
-                // not initialized
+                // not yet fully initialized
                 _initialized = false;
 
                 // save current language
                 _language = LocaleManager.instance.language;
 
+                // create history panel and button only if snapshots were successfully loaded
+                // if there was an error loading snapshots, allow the rest of this mod to continue
+                if (EOCVSnapshots.instance.Loaded)
+                {
+                    // create history panel which will eventually trigger the panel's Start method
+                    _historyPanel = ocInfoViewPanel.component.AddUIComponent<EOCVHistoryPanel>();
+                    if (_historyPanel == null)
+                    {
+                        LogUtil.LogError($"Unable to create history panel attached to panel [OutsideConnectionsInfoViewPanel].");
+                        return false;
+                    }
+
+                    // create the history button
+                    _historyButton = ocInfoViewPanel.component.AddUIComponent<UISprite>();
+                    if (_historyButton == null)
+                    {
+                        LogUtil.LogError($"Unable to create History button on panel [OutsideConnectionsInfoViewPanel].");
+                        return false;
+                    }
+                    _historyButton.name = "HistoryButton";
+                    _historyButton.autoSize = false;
+                    _historyButton.size = new Vector2(109f / 2f, 75f / 2f);    // original size is 109x75 pixels
+                    _historyButton.relativePosition = new Vector3(ocInfoViewPanel.component.size.x - _historyButton.size.x - 20f, 160f);
+                    _historyButton.spriteName = "ThumbStatistics";
+                    _historyButton.BringToFront();  // make sure it is in front of everything else
+                    _historyButton.eventClicked += HistoryButton_eventClicked;
+                }
+
                 // update label text
                 UpdateLabelText();
+
+                // detect info mode change
+                InfoManager.instance.EventInfoModeChanged += InfoManager_EventInfoModeChanged;
 
                 // success
                 return true;
             }
             catch (Exception ex)
             {
-                Debug.LogException(ex);
+                LogUtil.LogException(ex);
                 return false;
             }
         }
 
+        /// <summary>
+        /// handle click on history button
+        /// </summary>
+        private void HistoryButton_eventClicked(UIComponent component, UIMouseEventParameter eventParam)
+        {
+            // toggle visibility so that clicking on the button when visible will hide the panel
+            _historyPanel.isVisible = !_historyPanel.isVisible;
+
+            // update the history panel
+            UpdateHistoryPanel();
+        }
+
+        /// <summary>
+        /// handle info mode change
+        /// </summary>
+        private void InfoManager_EventInfoModeChanged(InfoManager.InfoMode mode, InfoManager.SubInfoMode subMode)
+        {
+            // update history panel in case user changed TO outside connections info view  mode
+            UpdateHistoryPanel();
+        }
 
         /// <summary>
         /// create a resource on the specified legend panel
         /// basically, the existing resource panel is hidden and a new resource panel is created from scratch
         /// </summary>
         /// <returns>success status</returns>
-        private static bool CreateResource(UIPanel legendPanel, ConnectionDirection direction, ResourceType type, float resourcePanelTop, UITextureAtlas ingameAtlas, out UIResource resource)
+        private bool CreateResource(UIPanel legendPanel, ConnectionDirection direction, ResourceType type, float resourcePanelTop, UITextureAtlas ingameAtlas, out UIResource resource)
         {
             // create new resource
             resource = new UIResource();
@@ -270,7 +339,7 @@ namespace EnhancedOutsideConnectionsView
             if (!Find(legendPanel, originalColorSpriteName, out UISprite originalColorSprite)) return false;
             if (originalColorSprite.parent.GetType() != typeof(UIPanel))
             {
-                Debug.LogError($"Parent is not a UIPanel for sprite [{originalColorSpriteName}] on panel [{legendPanel.name}].");
+                LogUtil.LogError($"Parent is not a UIPanel for sprite [{originalColorSpriteName}] on panel [{legendPanel.name}].");
                 return false;
             }
             resource.OriginalPanel = (UIPanel)originalColorSprite.parent;
@@ -283,7 +352,7 @@ namespace EnhancedOutsideConnectionsView
             resource.Panel = legendPanel.AddUIComponent<UIPanel>();
             if (resource.Panel == null)
             {
-                Debug.LogError($"Unable to create panel for resource [{componentNamePrefix}] on legend panel [{legendPanel.name}].");
+                LogUtil.LogError($"Unable to create panel for resource [{componentNamePrefix}] on legend panel [{legendPanel.name}].");
                 return false;
             }
             resource.Panel.name = componentNamePrefix + "Panel";
@@ -301,7 +370,7 @@ namespace EnhancedOutsideConnectionsView
             resource.CheckBox = resource.Panel.AddUIComponent<UISprite>();
             if (resource.CheckBox == null)
             {
-                Debug.LogError($"Unable to create check box sprite for resource [{componentNamePrefix}] on resource panel [{resource.Panel.name}].");
+                LogUtil.LogError($"Unable to create check box sprite for resource [{componentNamePrefix}] on resource panel [{resource.Panel.name}].");
                 return false;
             }
             resource.CheckBox.name = componentNamePrefix + "CheckBox";
@@ -317,7 +386,7 @@ namespace EnhancedOutsideConnectionsView
             resource.ColorSprite = resource.Panel.AddUIComponent<UISprite>();
             if (resource.ColorSprite == null)
             {
-                Debug.LogError($"Unable to create check box sprite for resource [{componentNamePrefix}] on resource panel [{resource.Panel.name}].");
+                LogUtil.LogError($"Unable to create check box sprite for resource [{componentNamePrefix}] on resource panel [{resource.Panel.name}].");
                 return false;
             }
             resource.ColorSprite.name = componentNamePrefix + "Color";
@@ -337,7 +406,7 @@ namespace EnhancedOutsideConnectionsView
             resource.Description = resource.Panel.AddUIComponent<UILabel>();
             if (resource.Description == null)
             {
-                Debug.LogError($"Unable to create description label for resource [{componentNamePrefix}] on resource panel [{resource.Panel.name}].");
+                LogUtil.LogError($"Unable to create description label for resource [{componentNamePrefix}] on resource panel [{resource.Panel.name}].");
                 return false;
             }
             resource.Description.name = componentNamePrefix + "Description";
@@ -356,7 +425,7 @@ namespace EnhancedOutsideConnectionsView
             resource.Count = resource.Panel.AddUIComponent<UILabel>();
             if (resource.Count == null)
             {
-                Debug.LogError($"Unable to create count label for resource [{componentNamePrefix}] on resource panel [{resource.Panel.name}].");
+                LogUtil.LogError($"Unable to create count label for resource [{componentNamePrefix}] on resource panel [{resource.Panel.name}].");
                 return false;
             }
             resource.Count.name = componentNamePrefix + "Count";
@@ -382,7 +451,7 @@ namespace EnhancedOutsideConnectionsView
         /// handle click on a resource panel to show/hide that resource
         /// a click on any contained component (i.e. check box, color sprite, description, count) triggers this click event
         /// </summary>
-        private static void ResourcePanel_eventClicked(UIComponent component, UIMouseEventParameter eventParam)
+        private void ResourcePanel_eventClicked(UIComponent component, UIMouseEventParameter eventParam)
         {
             try
             {
@@ -424,17 +493,20 @@ namespace EnhancedOutsideConnectionsView
                         break;
                     }
                 }
+
+                // update the history panel
+                UpdateHistoryPanel();
             }
             catch (Exception ex)
             {
-                Debug.LogException(ex);
+                LogUtil.LogException(ex);
             }
         }
 
         /// <summary>
         /// return whether or not the resource's check box is checked
         /// </summary>
-        private static bool IsCheckBoxChecked(UIResource resource)
+        private bool IsCheckBoxChecked(UIResource resource)
         {
             return resource.CheckBox.spriteName == "check-checked";
         }
@@ -442,7 +514,7 @@ namespace EnhancedOutsideConnectionsView
         /// <summary>
         /// set the check box status and update other components in the resource
         /// </summary>
-        private static void SetCheckBox(UIResource resource, bool value)
+        private void SetCheckBox(UIResource resource, bool value)
         {
             // update resource based on value
             if (value)
@@ -480,7 +552,7 @@ namespace EnhancedOutsideConnectionsView
         /// get the resource color for the resource type
         /// same colors are used for import and export
         /// </summary>
-        private static Color GetResourceColor(ResourceType type)
+        public Color GetResourceColor(ResourceType type)
         {
             // translate resource type to transfer reason
             int reason;
@@ -495,7 +567,7 @@ namespace EnhancedOutsideConnectionsView
                 case ResourceType.Mail:     reason = (int)TransferManager.TransferReason.Mail;  break;
                 case ResourceType.Fish:     reason = (int)TransferManager.TransferReason.Fish;  break;
                 default:
-                    Debug.LogError($"Unable to translate resource type [{type}] to resource color.");
+                    LogUtil.LogError($"Unable to translate resource type [{type}] to resource color.");
                     return Color.black;
             }
 
@@ -507,7 +579,7 @@ namespace EnhancedOutsideConnectionsView
         /// <summary>
         /// create totals
         /// </summary>
-        private static bool CreateTotal(UIPanel panel, UIPanel legendPanel, UIResource lastResource, ConnectionDirection direction, UITextureAtlas ingameAtlas, out UITotal total)
+        private bool CreateTotal(UIPanel panel, UIPanel legendPanel, UIResource lastResource, ConnectionDirection direction, UITextureAtlas ingameAtlas, out UITotal total)
         {
             // create new total
             total = new UITotal();
@@ -523,7 +595,7 @@ namespace EnhancedOutsideConnectionsView
             UIRadialChart originalChart = panel.Find<UIRadialChart>(originalChartName);
             if (originalChart == null)
             {
-                Debug.LogError($"Unable to find chart [{originalChartName}] on panel [{panel.name}].");
+                LogUtil.LogError($"Unable to find chart [{originalChartName}] on panel [{panel.name}].");
                 return false;
             }
             originalChart.isVisible = false;
@@ -535,7 +607,7 @@ namespace EnhancedOutsideConnectionsView
             total.Chart = panel.AddUIComponent<UIRadialChart>();
             if (total.Chart == null)
             {
-                Debug.LogError($"Unable to create radial chart for panel [{panel.name}].");
+                LogUtil.LogError($"Unable to create radial chart for panel [{panel.name}].");
                 return false;
             }
             total.Chart.name = componentNamePrefix + "Chart";
@@ -569,7 +641,7 @@ namespace EnhancedOutsideConnectionsView
             total.Line = legendPanel.AddUIComponent<UISprite>();
             if (total.Line == null)
             {
-                Debug.LogError($"Unable to create line sprite for legend panel [{legendPanel.name}].");
+                LogUtil.LogError($"Unable to create line sprite for legend panel [{legendPanel.name}].");
                 return false;
             }
             total.Line.name = componentNamePrefix + "Line";
@@ -584,7 +656,7 @@ namespace EnhancedOutsideConnectionsView
             total.Text = legendPanel.AddUIComponent<UILabel>();
             if (total.Text == null)
             {
-                Debug.LogError($"Unable to create total text label on legend panel [{legendPanel.name}].");
+                LogUtil.LogError($"Unable to create total text label on legend panel [{legendPanel.name}].");
                 return false;
             }
             total.Text.name = componentNamePrefix + "Text";
@@ -603,7 +675,7 @@ namespace EnhancedOutsideConnectionsView
             total.Total = legendPanel.AddUIComponent<UILabel>();
             if (total.Total == null)
             {
-                Debug.LogError($"Unable to create total count label on legend panel [{legendPanel.name}].");
+                LogUtil.LogError($"Unable to create total count label on legend panel [{legendPanel.name}].");
                 return false;
             }
             total.Total.name = componentNamePrefix + "Total";
@@ -627,13 +699,13 @@ namespace EnhancedOutsideConnectionsView
         /// find the named import/export panel on the OC info view panel
         /// </summary>
         /// <returns>success status</returns>
-        private static bool FindImportExportPanel(OutsideConnectionsInfoViewPanel ocInfoViewPanel, string panelName, out UIPanel panel)
+        private bool FindImportExportPanel(OutsideConnectionsInfoViewPanel ocInfoViewPanel, string panelName, out UIPanel panel)
         {
             // find the panel
             panel = ocInfoViewPanel.Find<UIPanel>(panelName);
             if (panel == null)
             {
-                Debug.LogError($"Unable to find panel [{panelName}] on [{ocInfoViewPanel.name}].");
+                LogUtil.LogError($"Unable to find panel [{panelName}] on [{ocInfoViewPanel.name}].");
                 return false;
             }
 
@@ -645,13 +717,13 @@ namespace EnhancedOutsideConnectionsView
         /// find the named component on the specified panel
         /// </summary>
         /// <returns>success status</returns>
-        private static bool Find<T>(UIPanel onPanel, string componentName, out T component) where T : UIComponent
+        private bool Find<T>(UIPanel onPanel, string componentName, out T component) where T : UIComponent
         {
             // find the component
             component = onPanel.Find<T>(componentName);
             if (component == null)
             {
-                Debug.LogError($"Unable to find component type [{typeof(T)}] named [{componentName}] on panel [{onPanel.name}].");
+                LogUtil.LogError($"Unable to find component type [{typeof(T)}] named [{componentName}] on panel [{onPanel.name}].");
                 return false;
             }
 
@@ -661,8 +733,9 @@ namespace EnhancedOutsideConnectionsView
 
         /// <summary>
         /// update the user interface
+        /// gets called only when the OCIV panel is visible
         /// </summary>
-        public static void UpdatePanel()
+        public void UpdatePanel()
         {
             try
             {
@@ -688,93 +761,87 @@ namespace EnhancedOutsideConnectionsView
                 {
                     return;
                 }
-
-                // logic copied from OutsideConnectionsInfoViewPanel.UpdatePanel and then deselected resources are set to zero
                 if (!DistrictManager.exists)
                 {
                     return;
                 }
-                DistrictManager instance = DistrictManager.instance;
 
-                // get import values
-                DistrictResourceData importData = instance.m_districts.m_buffer[0].m_importData;
-                int importGoods    = (int)(importData.m_averageGoods        + 99) / 100;
-                int importForestry = (int)(importData.m_averageForestry     + 99) / 100;
-                int importFarming  = (int)(importData.m_averageAgricultural + 99) / 100;
-                int importOre      = (int)(importData.m_averageOre          + 99) / 100;
-                int importOil      = (int)(importData.m_averageOil          + 99) / 100;
-                int importMail     = (int)(importData.m_averageMail         + 99) / 100;
+                // get a snapshot of resources
+                EOCVSnapshot snapshot = GetResourceSnapshot();
 
                 // if check box is unchecked, then set value to zero
-                if (!IsCheckBoxChecked(_importGoods   )) importGoods    = 0;
-                if (!IsCheckBoxChecked(_importForestry)) importForestry = 0;
-                if (!IsCheckBoxChecked(_importFarming )) importFarming  = 0;
-                if (!IsCheckBoxChecked(_importOre     )) importOre      = 0;
-                if (!IsCheckBoxChecked(_importOil     )) importOil      = 0;
-                if (!IsCheckBoxChecked(_importMail    )) importMail     = 0;
+                if (!IsCheckBoxChecked(_importGoods   )) snapshot.ImportGoods    = 0;
+                if (!IsCheckBoxChecked(_importForestry)) snapshot.ImportForestry = 0;
+                if (!IsCheckBoxChecked(_importFarming )) snapshot.ImportFarming  = 0;
+                if (!IsCheckBoxChecked(_importOre     )) snapshot.ImportOre      = 0;
+                if (!IsCheckBoxChecked(_importOil     )) snapshot.ImportOil      = 0;
+                if (!IsCheckBoxChecked(_importMail    )) snapshot.ImportMail     = 0;
 
                 // display import values
-                _importGoods.Count.text    = importGoods.ToString(   "N0", LocaleManager.cultureInfo);
-                _importForestry.Count.text = importForestry.ToString("N0", LocaleManager.cultureInfo);
-                _importFarming.Count.text  = importFarming.ToString( "N0", LocaleManager.cultureInfo);
-                _importOre.Count.text      = importOre.ToString(     "N0", LocaleManager.cultureInfo);
-                _importOil.Count.text      = importOil.ToString(     "N0", LocaleManager.cultureInfo);
-                _importMail.Count.text     = importMail.ToString(    "N0", LocaleManager.cultureInfo);
+                _importGoods.Count.text    = snapshot.ImportGoods   .ToString("N0", LocaleManager.cultureInfo);
+                _importForestry.Count.text = snapshot.ImportForestry.ToString("N0", LocaleManager.cultureInfo);
+                _importFarming.Count.text  = snapshot.ImportFarming .ToString("N0", LocaleManager.cultureInfo);
+                _importOre.Count.text      = snapshot.ImportOre     .ToString("N0", LocaleManager.cultureInfo);
+                _importOil.Count.text      = snapshot.ImportOil     .ToString("N0", LocaleManager.cultureInfo);
+                _importMail.Count.text     = snapshot.ImportMail    .ToString("N0", LocaleManager.cultureInfo);
 
                 // compute and display import total
-                int importTotal = importGoods + importForestry + importFarming + importOre + importOil + importMail;
+                int importTotal =
+                    snapshot.ImportGoods    +
+                    snapshot.ImportForestry +
+                    snapshot.ImportFarming  +
+                    snapshot.ImportOre      +
+                    snapshot.ImportOil      +
+                    snapshot.ImportMail;
                 _importTotal.Total.text = importTotal.ToString("N0", LocaleManager.cultureInfo);
 
                 // update import chart
                 _importTotal.Chart.SetValues(
-                    GetValue(importGoods,    importTotal),
-                    GetValue(importForestry, importTotal),
-                    GetValue(importFarming,  importTotal),
-                    GetValue(importOre,      importTotal),
-                    GetValue(importOil,      importTotal),
-                    GetValue(importMail,     importTotal));
-
-                // get export values
-                DistrictResourceData exportData = instance.m_districts.m_buffer[0].m_exportData;
-                int exportGoods    = (int)(exportData.m_averageGoods        + 99) / 100;
-                int exportForestry = (int)(exportData.m_averageForestry     + 99) / 100;
-                int exportFarming  = (int)(exportData.m_averageAgricultural + 99) / 100;
-                int exportOre      = (int)(exportData.m_averageOre          + 99) / 100;
-                int exportOil      = (int)(exportData.m_averageOil          + 99) / 100;
-                int exportMail     = (int)(exportData.m_averageMail         + 99) / 100;
-                int exportFish     = (int)(exportData.m_averageFish         + 99) / 100;
+                    GetValue(snapshot.ImportGoods,    importTotal),
+                    GetValue(snapshot.ImportForestry, importTotal),
+                    GetValue(snapshot.ImportFarming,  importTotal),
+                    GetValue(snapshot.ImportOre,      importTotal),
+                    GetValue(snapshot.ImportOil,      importTotal),
+                    GetValue(snapshot.ImportMail,     importTotal));
 
                 // if check box is unchecked, then set value to zero
-                if (!IsCheckBoxChecked(_exportGoods   )) exportGoods    = 0;
-                if (!IsCheckBoxChecked(_exportForestry)) exportForestry = 0;
-                if (!IsCheckBoxChecked(_exportFarming )) exportFarming  = 0;
-                if (!IsCheckBoxChecked(_exportOre     )) exportOre      = 0;
-                if (!IsCheckBoxChecked(_exportOil     )) exportOil      = 0;
-                if (!IsCheckBoxChecked(_exportMail    )) exportMail     = 0;
-                if (!IsCheckBoxChecked(_exportFish    )) exportFish     = 0;
+                if (!IsCheckBoxChecked(_exportGoods   )) snapshot.ExportGoods    = 0;
+                if (!IsCheckBoxChecked(_exportForestry)) snapshot.ExportForestry = 0;
+                if (!IsCheckBoxChecked(_exportFarming )) snapshot.ExportFarming  = 0;
+                if (!IsCheckBoxChecked(_exportOre     )) snapshot.ExportOre      = 0;
+                if (!IsCheckBoxChecked(_exportOil     )) snapshot.ExportOil      = 0;
+                if (!IsCheckBoxChecked(_exportMail    )) snapshot.ExportMail     = 0;
+                if (!IsCheckBoxChecked(_exportFish    )) snapshot.ExportFish     = 0;
 
                 // display export values
-                _exportGoods.Count.text    = exportGoods.ToString(   "N0", LocaleManager.cultureInfo);
-                _exportForestry.Count.text = exportForestry.ToString("N0", LocaleManager.cultureInfo);
-                _exportFarming.Count.text  = exportFarming.ToString( "N0", LocaleManager.cultureInfo);
-                _exportOre.Count.text      = exportOre.ToString(     "N0", LocaleManager.cultureInfo);
-                _exportOil.Count.text      = exportOil.ToString(     "N0", LocaleManager.cultureInfo);
-                _exportMail.Count.text     = exportMail.ToString(    "N0", LocaleManager.cultureInfo);
-                _exportFish.Count.text     = exportFish.ToString(    "N0", LocaleManager.cultureInfo);
+                _exportGoods.Count.text    = snapshot.ExportGoods   .ToString("N0", LocaleManager.cultureInfo);
+                _exportForestry.Count.text = snapshot.ExportForestry.ToString("N0", LocaleManager.cultureInfo);
+                _exportFarming.Count.text  = snapshot.ExportFarming .ToString("N0", LocaleManager.cultureInfo);
+                _exportOre.Count.text      = snapshot.ExportOre     .ToString("N0", LocaleManager.cultureInfo);
+                _exportOil.Count.text      = snapshot.ExportOil     .ToString("N0", LocaleManager.cultureInfo);
+                _exportMail.Count.text     = snapshot.ExportMail    .ToString("N0", LocaleManager.cultureInfo);
+                _exportFish.Count.text     = snapshot.ExportFish    .ToString("N0", LocaleManager.cultureInfo);
 
                 // compute and display export total
-                int exportTotal = exportGoods + exportForestry + exportFarming + exportOre + exportOil + exportMail + exportFish;
+                int exportTotal =
+                    snapshot.ExportGoods    +
+                    snapshot.ExportForestry +
+                    snapshot.ExportFarming  +
+                    snapshot.ExportOre      +
+                    snapshot.ExportOil      +
+                    snapshot.ExportMail     +
+                    snapshot.ExportFish;
                 _exportTotal.Total.text = exportTotal.ToString("N0", LocaleManager.cultureInfo);
 
                 // update export chart
                 _exportTotal.Chart.SetValues(
-                    GetValue(exportGoods,    exportTotal),
-                    GetValue(exportForestry, exportTotal),
-                    GetValue(exportFarming,  exportTotal),
-                    GetValue(exportOre,      exportTotal),
-                    GetValue(exportOil,      exportTotal),
-                    GetValue(exportMail,     exportTotal),
-                    GetValue(exportFish,     exportTotal));
+                    GetValue(snapshot.ExportGoods,    exportTotal),
+                    GetValue(snapshot.ExportForestry, exportTotal),
+                    GetValue(snapshot.ExportFarming,  exportTotal),
+                    GetValue(snapshot.ExportOre,      exportTotal),
+                    GetValue(snapshot.ExportOil,      exportTotal),
+                    GetValue(snapshot.ExportMail,     exportTotal),
+                    GetValue(snapshot.ExportFish,     exportTotal));
 
                 // if language changed, update text labels
                 if (LocaleManager.instance.language != _language)
@@ -785,7 +852,7 @@ namespace EnhancedOutsideConnectionsView
             }
             catch (Exception ex)
             {
-                Debug.LogException(ex);
+                LogUtil.LogException(ex);
             }
         }
 
@@ -793,7 +860,7 @@ namespace EnhancedOutsideConnectionsView
         /// return the ratio for the given value and total
         /// radial chart uses ratio, not percent
         /// </summary>
-        private static float GetValue(int value, int total)
+        private float GetValue(int value, int total)
         {
             if (total == 0) return 0f;
             return (float)value / (float)total;
@@ -802,25 +869,25 @@ namespace EnhancedOutsideConnectionsView
         /// <summary>
         /// update text on labels
         /// </summary>
-        private static void UpdateLabelText()
+        private void UpdateLabelText()
         {
             try
             {
                 // for each resource, copy the text from the original description label
-                _importGoods.Description.text = _importGoods.OriginalDescription.text;
+                _importGoods   .Description.text = _importGoods   .OriginalDescription.text;
                 _importForestry.Description.text = _importForestry.OriginalDescription.text;
-                _importFarming.Description.text = _importFarming.OriginalDescription.text;
-                _importOre.Description.text = _importOre.OriginalDescription.text;
-                _importOil.Description.text = _importOil.OriginalDescription.text;
-                _importMail.Description.text = _importMail.OriginalDescription.text;
+                _importFarming .Description.text = _importFarming .OriginalDescription.text;
+                _importOre     .Description.text = _importOre     .OriginalDescription.text;
+                _importOil     .Description.text = _importOil     .OriginalDescription.text;
+                _importMail    .Description.text = _importMail    .OriginalDescription.text;
 
-                _exportGoods.Description.text = _exportGoods.OriginalDescription.text;
+                _exportGoods   .Description.text = _exportGoods   .OriginalDescription.text;
                 _exportForestry.Description.text = _exportForestry.OriginalDescription.text;
-                _exportFarming.Description.text = _exportFarming.OriginalDescription.text;
-                _exportOre.Description.text = _exportOre.OriginalDescription.text;
-                _exportOil.Description.text = _exportOil.OriginalDescription.text;
-                _exportMail.Description.text = _exportMail.OriginalDescription.text;
-                _exportFish.Description.text = _exportFish.OriginalDescription.text;
+                _exportFarming .Description.text = _exportFarming .OriginalDescription.text;
+                _exportOre     .Description.text = _exportOre     .OriginalDescription.text;
+                _exportOil     .Description.text = _exportOil     .OriginalDescription.text;
+                _exportMail    .Description.text = _exportMail    .OriginalDescription.text;
+                _exportFish    .Description.text = _exportFish    .OriginalDescription.text;
 
                 // for each total, parse the format string for original total label to get the total text, which is everything up to but not including the left brace
                 string format = Locale.Get(_importTotal.OriginalLabel.localeID);
@@ -836,10 +903,27 @@ namespace EnhancedOutsideConnectionsView
                 {
                     _exportTotal.Text.text = format.Substring(0, leftBracePosition).Trim();
                 }
+
+                // update texts on the history graph
+                // it is assumed import and export resource texts are the same as each other, so just use export
+                if (_historyPanel != null)
+                {
+                    _historyPanel.SetTexts(
+                        _importChartTitle.text,
+                        _exportChartTitle.text,
+                        _exportGoods   .Description.text,
+                        _exportForestry.Description.text,
+                        _exportFarming .Description.text,
+                        _exportOre     .Description.text,
+                        _exportOil     .Description.text,
+                        _exportMail    .Description.text,
+                        _exportFish    .Description.text);
+                    UpdateHistoryPanel();
+                }
             }
             catch (Exception ex)
             {
-                Debug.LogException(ex);
+                LogUtil.LogException(ex);
             }
         }
 
@@ -847,7 +931,7 @@ namespace EnhancedOutsideConnectionsView
         /// return the color of the building
         /// </summary>
         /// <returns>whether or not to do base processing</returns>
-        public static bool GetBuildingColor(ushort buildingID, ref Building data, ref Color color)
+        public bool GetBuildingColor(ushort buildingID, ref Building data, ref Color color)
         {
             try
             {
@@ -1076,11 +1160,11 @@ namespace EnhancedOutsideConnectionsView
                 }
 
                 // if get here then a building AI patch was created without adding logic above for the AI
-                Debug.LogError($"Unhandled building AI type [{data.Info.m_buildingAI.GetType()}] for building ID [{buildingID}] while getting building color.");
+                LogUtil.LogError($"Unhandled building AI type [{data.Info.m_buildingAI.GetType()}] for building ID [{buildingID}] while getting building color.");
             }
             catch (Exception ex)
             {
-                Debug.LogException(ex);
+                LogUtil.LogException(ex);
             }
 
             // do base processing
@@ -1091,7 +1175,7 @@ namespace EnhancedOutsideConnectionsView
         /// return the color of the vehicle
         /// </summary>
         /// <returns>whether or not to do base processing</returns>
-        public static bool GetVehicleColor(ushort vehicleID, ref Vehicle data, ref Color color)
+        public bool GetVehicleColor(ushort vehicleID, ref Vehicle data, ref Color color)
         {
             try
             {
@@ -1113,11 +1197,11 @@ namespace EnhancedOutsideConnectionsView
                 }
 
                 // if get here then vehicle AI patch was created without adding logic above for the AI
-                Debug.LogError($"Unhandled vehicle AI type [{vehicleAIType}] for vehicle ID [{vehicleID}] while getting vehicle color.");
+                LogUtil.LogError($"Unhandled vehicle AI type [{vehicleAIType}] for vehicle ID [{vehicleID}] while getting vehicle color.");
             }
             catch (Exception ex)
             {
-                Debug.LogException(ex);
+                LogUtil.LogException(ex);
             }
 
             // do base processing
@@ -1128,7 +1212,7 @@ namespace EnhancedOutsideConnectionsView
         /// return the color of the building or vehicle based on transfer reason
         /// </summary>
         /// <returns>whether or not to do base processing</returns>
-        private static bool GetColorFromTransferReason(TransferManager.TransferReason transferReason, ref Color color)
+        private bool GetColorFromTransferReason(TransferManager.TransferReason transferReason, ref Color color)
         {
             // check for no transfer reason
             if (transferReason == TransferManager.TransferReason.None)
@@ -1201,7 +1285,7 @@ namespace EnhancedOutsideConnectionsView
         /// return the color of the building or vehicle based on resource type
         /// </summary>
         /// <returns>whether or not to do base processing</returns>
-        private static bool GetColorFromResourceType(ResourceType type, ref Color color)
+        private bool GetColorFromResourceType(ResourceType type, ref Color color)
         {
             // check for no resource type
             if (type == ResourceType.None)
@@ -1234,16 +1318,96 @@ namespace EnhancedOutsideConnectionsView
             // resource not found, not an error, just do base processing
             return true;
         }
+        
+        /// <summary>
+        /// update the history panel
+        /// </summary>
+        public void UpdateHistoryPanel()
+        {
+            // update only if info mode is Connections and history panel is visible
+            if (InfoManager.exists && InfoManager.instance.CurrentMode == InfoManager.InfoMode.Connections && _historyPanel != null && _historyPanel.isVisible)
+            {
+                if (InfoManager.instance.CurrentSubMode == InfoManager.SubInfoMode.Import)
+                {
+                    _historyPanel.UpdatePanel(
+                        ConnectionDirection.Import,
+                        IsCheckBoxChecked(_importGoods),
+                        IsCheckBoxChecked(_importForestry),
+                        IsCheckBoxChecked(_importFarming),
+                        IsCheckBoxChecked(_importOre),
+                        IsCheckBoxChecked(_importOil),
+                        IsCheckBoxChecked(_importMail) && _importMail.Panel.isVisible,
+                        false);
+                }
+                else
+                {
+                    _historyPanel.UpdatePanel(
+                        ConnectionDirection.Export,
+                        IsCheckBoxChecked(_exportGoods),
+                        IsCheckBoxChecked(_exportForestry),
+                        IsCheckBoxChecked(_exportFarming),
+                        IsCheckBoxChecked(_exportOre),
+                        IsCheckBoxChecked(_exportOil),
+                        IsCheckBoxChecked(_exportMail) && _exportMail.Panel.isVisible,
+                        IsCheckBoxChecked(_exportFish) && _exportFish.Panel.isVisible);
+                }
+            }
+        }
+
+        /// <summary>
+        /// return a snapshot of resources
+        /// logic copied from OutsideConnectionsInfoViewPanel.UpdatePanel
+        /// </summary>
+        /// <returns></returns>
+        public EOCVSnapshot GetResourceSnapshot()
+        {
+            // get import and export data
+            DistrictManager instance = DistrictManager.instance;
+            DistrictResourceData importData = instance.m_districts.m_buffer[0].m_importData;
+            DistrictResourceData exportData = instance.m_districts.m_buffer[0].m_exportData;
+
+            // return the snapshot
+            DateTime gameDate = SimulationManager.instance.m_currentGameTime.Date;
+            return new EOCVSnapshot
+                (
+                // day one of the current game month
+                new DateTime(gameDate.Year, gameDate.Month, 1),
+
+                // get import resources
+                (int)(importData.m_averageGoods        + 99) / 100,
+                (int)(importData.m_averageForestry     + 99) / 100,
+                (int)(importData.m_averageAgricultural + 99) / 100,
+                (int)(importData.m_averageOre          + 99) / 100,
+                (int)(importData.m_averageOil          + 99) / 100,
+                (int)(importData.m_averageMail         + 99) / 100,
+
+                // get export resources
+                (int)(exportData.m_averageGoods        + 99) / 100,
+                (int)(exportData.m_averageForestry     + 99) / 100,
+                (int)(exportData.m_averageAgricultural + 99) / 100,
+                (int)(exportData.m_averageOre          + 99) / 100,
+                (int)(exportData.m_averageOil          + 99) / 100,
+                (int)(exportData.m_averageMail         + 99) / 100,
+                (int)(exportData.m_averageFish         + 99) / 100
+                );
+        }
 
         /// <summary>
         /// deinitialize user interface
         /// </summary>
-        public static void Deinitialize()
+        public void Deinitialize()
         {
             try
             {
+                // remove event handler
+                InfoManager.instance.EventInfoModeChanged -= InfoManager_EventInfoModeChanged;
+
                 // must destroy objects explicitly because loading a saved game from the Pause Menu
                 // does not destroy the objects implicitly like returning to the Main Menu to load a saved game
+
+                // destroy history
+                DestroyUIComponent(ref _historyPanel);
+                DestroyUIComponent(ref _historyButton);
 
                 // destroy resources
                 if (_resources != null)
@@ -1275,14 +1439,14 @@ namespace EnhancedOutsideConnectionsView
             }
             catch (Exception ex)
             {
-                Debug.LogException(ex);
+                LogUtil.LogException(ex);
             }
         }
 
         /// <summary>
         /// destroy a resource
         /// </summary>
-        private static void DestroyResource(UIResource resource)
+        private void DestroyResource(UIResource resource)
         {
             if (resource != null)
             {
@@ -1304,7 +1468,7 @@ namespace EnhancedOutsideConnectionsView
         /// <summary>
         /// destroy a total
         /// </summary>
-        private static void DestroyTotal(UITotal total)
+        private void DestroyTotal(UITotal total)
         {
             if (total != null)
             {
@@ -1319,7 +1483,7 @@ namespace EnhancedOutsideConnectionsView
         /// <summary>
         /// destroy a UI component
         /// </summary>
-        private static void DestroyUIComponent<T>(ref T component) where T : UIComponent
+        private void DestroyUIComponent<T>(ref T component) where T : UIComponent
         {
             if (component != null)
             {

@@ -111,7 +111,7 @@ namespace EnhancedOutsideConnectionsView
             // do processing for this mod only for Outside Connections info view
             if (infoMode == InfoManager.InfoMode.Connections)
             {
-                return EOCVUserInterface.GetVehicleColor(vehicleID, ref data, ref __result);
+                return EOCVUserInterface.instance.GetVehicleColor(vehicleID, ref data, ref __result);
             }
 
             // do base processing

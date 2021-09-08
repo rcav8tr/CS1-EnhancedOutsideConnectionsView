@@ -1,5 +1,4 @@
 ﻿using ICities;
-using UnityEngine;
 using System;
 using ColossalFramework.Plugins;
 using ColossalFramework.UI;
@@ -37,7 +36,7 @@ namespace EnhancedOutsideConnectionsView
                                     ExceptionPanel panel = UIView.library.ShowModal<ExceptionPanel>("ExceptionPanel");
                                     panel.SetMessage(
                                         "Enhanced Outside Connections View", 
-                                        "The Enhanced Outside Connections View mod supersedes the Exclude Mail mod.  \n\n" +
+                                        "The Enhanced Outside Connections View mod supersedes the Exclude Mail mod." + Environment.NewLine + Environment.NewLine +
                                         "Please unsubscribe from the Exclude Mail mod.",
                                         false);
 
@@ -52,7 +51,7 @@ namespace EnhancedOutsideConnectionsView
                     }
 
                     // initialize user interface
-                    if (!EOCVUserInterface.Initialize()) return;
+                    if (!EOCVUserInterface.instance.Initialize()) return;
 
                     // create the Harmony patches
                     if (!HarmonyPatcher.CreatePatches()) return;
@@ -60,7 +59,7 @@ namespace EnhancedOutsideConnectionsView
             }
             catch (Exception ex)
             {
-                Debug.LogException(ex);
+                LogUtil.LogException(ex);
             }
         }
 
@@ -85,12 +84,13 @@ namespace EnhancedOutsideConnectionsView
                     }
                 }
 
-                // deinitialize user interface
-                EOCVUserInterface.Deinitialize();
+                // deinitialize user interface and snapshots
+                EOCVUserInterface.instance.Deinitialize();
+                EOCVSnapshots.instance.Deinitialize();
             }
             catch (Exception ex)
             {
-                Debug.LogException(ex);
+                LogUtil.LogException(ex);
             }
         }
     }

@@ -67,7 +67,14 @@
     <Compile Include="BuildingAIPatch.cs" />
     <Compile Include="EOCV.cs" />
     <Compile Include="Configuration.cs" />
+    <Compile Include="EOCVGraph.cs" />
+    <Compile Include="EOCVHistoryPanel.cs" />
+    <Compile Include="EOCVSerializableData.cs" />
+    <Compile Include="EOCVSnapshot.cs" />
+    <Compile Include="EOCVSnapshots.cs" />
+    <Compile Include="EOCVThreading.cs" />
     <Compile Include="HarmonyPatcher.cs" />
+    <Compile Include="LogUtil.cs" />
     <Compile Include="OCIVPPatch.cs" />
     <Compile Include="EOCVUserInterface.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -23,7 +23,7 @@ namespace EnhancedOutsideConnectionsView
         public static void OutsideConnectionsInfoViewPanelUpdatePanel()
         {
             // update the panel
-            EOCVUserInterface.UpdatePanel();
+            EOCVUserInterface.instance.UpdatePanel();
         }
 
     }
