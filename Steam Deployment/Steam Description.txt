@@ -1,0 +1,49 @@
+The Outside Connections info view is enhanced to:[list]
+[*]show or hide individual resources
+[*]show the numerical amount of each resource
+[*]show a graph of resources over time[/list]
+
+[img=https://i.imgur.com/f2iRAPU.gif]
+
+[h1]Detailed Description[/h1]
+This mod introduces a show/hide check box for each import and export resource on the Outside Connections info view.  Your check box selections are remembered between games.
+
+When a resource is checked, the resource is included in the pie chart, total, and graph.  The buildings and vehicles importing/exporting that resource from/to outside connections are shown normally (i.e. colored to match the resource).
+
+When a resource is unchecked, the resource is excluded from the pie chart, total, and graph.  The buildings and vehicles importing/exporting that resource from/to outside connections are shown in neutral color.
+
+This mod is especially useful for hiding a resource that has a much larger amount than the other resources (e.g. Goods or Mail).  The relatively large amount of the one resource makes it difficult to see the amount of other resources.
+
+Note that the game logic may mark some buildings and vehicles as both importing and exporting at the same time.
+
+Click on the graph symbol (to the right of the pie chart) to show the resource imports or exports over time.  You can choose to show all history or only the last 10, 25, or 50 years.  A snapshot of resource data is taken on the first day of each game month while the mod is subscribed and enabled.  No snapshots are taken while the mod is disabled or unsubscribed, but existing snapshots remain.  If the mod is later re-enabled, the graph will have a gap.  If the graph has more than 25 years of data, adjacent data points are averaged together to reduce the number of data points on the graph.  Hover the cursor over a data point on the graph to view detail.
+
+[h1]Compatibility[/h1]
+This mod stores the resource history in the save game, but in a way that this mod can be safely disabled or unsubscribed at any time.  Disabling the mod will result in a gap in the graph if the mod is later re-enabled.
+
+This mod does not alter the game mechanics in any way.  This mod only changes the way information already in the game is displayed on the Outside Connections info view.
+
+This mod has been tested only on Windows but should work on Mac and Linux.
+
+This mod is compatible with all Down Loadable Content (DLC) packages thru Airports and all Content Creator Packs (CCP) thru Map Pack and Vehicles of the World.  This mod does not require any DLC or CCP to work properly.
+
+This mod is compatible with [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2016920607]Ploppable RICO Revisited[/url] mod.
+
+This mod is compatible with mods that alter the operation of outside connections (e.g. [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1721492498]Optimised Outside Connections[/url] and [url=https://steamcommunity.com/sharedfiles/filedetails/?id=734025380]Configure Outside Connections' Limits[/url]).
+
+This mod is compatible with [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1729576238]Date Changer[/url] mod.  If the date is changed, resource snapshots will be taken starting from that new date.  Previously taken snapshots will be overwritten if/when the simulation date reaches those snapshots.  Changing the date may cause a gap in the graph before or after previously taken snapshots.
+
+This mod is compatible with mods that change the game speed, including: [url=https://steamcommunity.com/sharedfiles/filedetails/?id=406354745]Speed Slider (v2)[/url], [url=https://steamcommunity.com/sharedfiles/filedetails/?id=412292157]More Simulation Speed Options[/url], [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1425061566]V10Speed[/url], [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2090425593]Game Speed mod[/url], and [url=https://steamcommunity.com/workshop/browse/?appid=255710]Real Time[/url].  A resource snapshot is still taken on the first day of each game month.
+
+This mod may or may not work correctly if another mod is enabled that alters the Outside Connections info view panel or alters the logic that gets building or vehicle color when the Outside Connections info view is displayed.
+
+This mod supersedes my now deprecated [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2093019121]Exclude Mail[/url] mod.
+
+[h1]Source Code[/h1]
+Available [url=https://github.com/rcav8tr/EnhancedOutsideConnectionsView]here[/url].
+Change notes [url=https://steamcommunity.com/sharedfiles/filedetails/changelog/2368396560]here[/url].
+
+[h1]Acknowledgments[/h1]
+This mod depends on [url=https://github.com/pardeike]Andreas Pardeike's[/url] [url=https://github.com/pardeike/Harmony]Harmony 2 Patching Library[/url] provided as a mod by [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2040656402]boformer[/url].
+
+The development of this mod relied on the [url=https://steamcommunity.com/sharedfiles/filedetails/?id=450877484]ModTools[/url] mod by [url=https://steamcommunity.com/id/bloody_penguin/myworkshopfiles/?appid=255710]BloodyPenguin[/url].
