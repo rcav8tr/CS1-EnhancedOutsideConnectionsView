@@ -17,30 +17,30 @@ namespace EnhancedOutsideConnectionsView
         // n AircraftAI                   (base class with no buildings)
         // Y    CargoPlaneAI              (unlimited:  Cargo Airport, Cargo Airport Hub)
         // n    PassengerPlaneAI          (unlimited:  Airport, International Airport)
-        // n BalloonAI                    (unlimited:  Hot Air Balloon Tours)
+        // n BalloonAI                    (unlimited:  Chirper Balloon Tours, Hot Air Balloon Tours)
         // n BicycleAI                    (not generated from a service building)
         // n BlimpAI                      (base class with no buildings)
         // n    PassengerBlimpAI          (unlimited:  Blimp Depot)
         // n CableCarBaseAI               (base class with no buildings)
         // n    CableCarAI                (unlimited:  Cable Car Stop, End-of-Line Cable Car Stop)
         // n CarAI                        (base class with no buildings)
-        // n    AmbulanceAI               Medical Clinic, Hospital, Medical Center (monument)
+        // n    AmbulanceAI               Medical Clinic, Hospital, High-Capacity Hospital, Medical Center (monument)
         // n    BusAI                     Small Emergency Shelter, Large Emergency Shelter,
         // n                              (unlimited:
         // n                                  Bus Depot, Biofuel Bus Depot,
-        // n                                  Intercity Bus Station, Intercity Bus Terminal, 
+        // n                                  Intercity Bus Station, Intercity Bus Terminal,
         // n                                  Sightseeing Bus Depots,
         // n                                  Bus-Intercity Bus Hub, Metro-Intercity Bus Hub)
         // Y    CargoTruckAI              All buildings for ExtractingFacilityAI, FishFarmingAI, FishFarmAI, ProcessingFacilityAI, UniqueFactoryAI, WarehouseAI.
         // Y                              (unlimited:  zoned industrial, Cargo Train Terminal, Cargo Harbor, Cargo Hub, Cargo Airport, Cargo Airport Hub)
         // n    DisasterResponseVehicleAI Disaster Response Unit
-        // n    FireTruckAI               Fire House, Fire Station
+        // n    FireTruckAI               Fire House, Fire Station, High-Capacity Fire Station, Historical Fire Station (CCP)
         // n    GarbageTruckAI            Landfill Site, Incineration Plant, Recycling Center, Ultimate Recycling Plant (monument)
         // n    HearseAI                  Cemetery, Crematorium, Cryopreservatory (CCP)
         // n    MaintenanceTruckAI        Road Maintenance Depot
         // n    ParkMaintenanceVehicleAI  Park Maintenance Building
         // n    PassengerCarAI            (not generated from a service building)
-        // n    PoliceCarAI               Police Station, Police Headquarters, Prison
+        // n    PoliceCarAI               Police Station, Police Headquarters, High-Capacity Police Headquarters, Prison, Historical Police Station (CCP)
         // Y    PostVanAI                 Post Office, Post Sorting Facility
         // n    SnowTruckAI               Snow Dump
         // n    TaxiAI                    Taxi Depot
@@ -65,11 +65,8 @@ namespace EnhancedOutsideConnectionsView
         // n    PassengerShipAI           (unlimited:  Harbor)
         // n TrainAI                      (base class with no buildings)
         // Y    CargoTrainAI              (unlimited:  Cargo Train Terminal, Cargo Hub, Cargo Airport Hub)
-        // n    PassengerTrainAI          (unlimited:  Train Station, Multiplatform End Station, Multiplatform Train Station,
-        // n                                           Monorail Station, Monorail Station with Road, Monorail-Bus Hub, Metro-Monorail-Train Hub,
-        // n                                           Train-Metro Hub)
-        // n       MetroTrainAI           (unlimited:  Metro Station, Elevated Metro Station, Underground Metro Station,
-        // n                                           Bus-Metro Hub, Metro-Intercity Bus Hub, Train-Metro Hub, International Airport, Metro-Monorail-Train Hub)
+        // n    PassengerTrainAI          (unlimited:  All buildings with a passenger train or monorail station.)
+        // n       MetroTrainAI           (unlimited:  All buildings with a metro station.)
         // n TramBaseAI                   (base class with no buildings)
         // n    TramAI                    (unlimited:  Tram Depot)
         // n VortexAI                     (TBD for tornado?)
