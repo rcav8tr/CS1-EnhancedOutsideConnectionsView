@@ -24,7 +24,7 @@ namespace EnhancedOutsideConnectionsView
         // n CableCarBaseAI               (base class with no buildings)
         // n    CableCarAI                (unlimited:  Cable Car Stop, End-of-Line Cable Car Stop)
         // n CarAI                        (base class with no buildings)
-        // n    AmbulanceAI               Medical Clinic, Hospital, High-Capacity Hospital, Medical Center (monument)
+        // n    AmbulanceAI               Medical Clinic, Hospital, High-Capacity Hospital, Plastic Surgery Center (CCP), Medical Center (monument)
         // n    BusAI                     Small Emergency Shelter, Large Emergency Shelter,
         // n                              (unlimited:
         // n                                  Bus Depot, Biofuel Bus Depot,
@@ -34,13 +34,13 @@ namespace EnhancedOutsideConnectionsView
         // Y    CargoTruckAI              All buildings for ExtractingFacilityAI, FishFarmingAI, FishFarmAI, ProcessingFacilityAI, UniqueFactoryAI, WarehouseAI.
         // Y                              (unlimited:  zoned industrial, Cargo Train Terminal, Cargo Harbor, Cargo Hub, Cargo Airport, Cargo Airport Hub)
         // n    DisasterResponseVehicleAI Disaster Response Unit
-        // n    FireTruckAI               Fire House, Fire Station, High-Capacity Fire Station, Historical Fire Station (CCP)
-        // n    GarbageTruckAI            Landfill Site, Incineration Plant, Recycling Center, Ultimate Recycling Plant (monument)
-        // n    HearseAI                  Cemetery, Crematorium, Cryopreservatory (CCP)
+        // n    FireTruckAI               Fire House, Fire Station, High-Capacity Fire Station, Historical Fire Station (CCP), Fire Safety Center (CCP)
+        // n    GarbageTruckAI            Landfill Site, Incineration Plant, Recycling Center, Eco-Friendly Incinerator Plant (CCP), Ultimate Recycling Plant (monument)
+        // n    HearseAI                  Cemetery, Crematorium, Cryopreservatory (CCP), Crematorium Memorial Park (CCP)
         // n    MaintenanceTruckAI        Road Maintenance Depot
         // n    ParkMaintenanceVehicleAI  Park Maintenance Building
         // n    PassengerCarAI            (not generated from a service building)
-        // n    PoliceCarAI               Police Station, Police Headquarters, High-Capacity Police Headquarters, Prison, Historical Police Station (CCP)
+        // n    PoliceCarAI               Police Station, Police Headquarters, High-Capacity Police Headquarters, Prison, Historical Police Station (CCP), Police Security Center (CCP)
         // Y    PostVanAI                 Post Office, Post Sorting Facility
         // n    SnowTruckAI               Snow Dump
         // n    TaxiAI                    Taxi Depot
