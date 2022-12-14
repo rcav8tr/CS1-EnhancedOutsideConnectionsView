@@ -21,7 +21,7 @@ namespace EnhancedOutsideConnectionsView
             if (!HarmonyHelper.IsHarmonyInstalled)
             {
                 ColossalFramework.UI.UIView.library.ShowModal<ExceptionPanel>("ExceptionPanel").SetMessage("Missing Dependency",
-                    "The Enhanced Outside Connections View mod requires the 'Harmony (Mod Dependency)' mod." + Environment.NewLine + Environment.NewLine + 
+                    "The Enhanced Outside Connections View mod requires the 'Harmony (Mod Dependency)' mod." + Environment.NewLine + Environment.NewLine +
                     "Please subscribe to the 'Harmony (Mod Dependency)' mod and restart the game.", error: false);
                 return false;
             }
@@ -83,7 +83,7 @@ namespace EnhancedOutsideConnectionsView
             // There is a GetColor routine in the derived AI classes which has Vehicle as a ref parameter.
             // There is a GetColor routine in the base class VehicleAI which has VehicleParked as a ref parameter.
             // The GetColor in the derived class is the one to be patched, so need to pass type Vehicle as a ref parameter.
-            MethodInfo originalMethod = originalType.GetMethod(originalMethodName, new Type[] { typeof(ushort), typeof(Vehicle).MakeByRefType(), typeof(InfoManager.InfoMode) });
+            MethodInfo originalMethod = originalType.GetMethod(originalMethodName, new Type[] { typeof(ushort), typeof(Vehicle).MakeByRefType(), typeof(InfoManager.InfoMode), typeof(InfoManager.SubInfoMode) });
             if (originalMethod == null)
             {
                 LogUtil.LogError($"Unable to find original method {originalType.Name}.{originalMethodName}.");
@@ -138,7 +138,7 @@ namespace EnhancedOutsideConnectionsView
             // success
             return true;
         }
-        
+
         /// <summary>
         /// remove Harmony patches
         /// </summary>

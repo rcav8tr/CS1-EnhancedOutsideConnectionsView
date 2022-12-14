@@ -25,6 +25,7 @@ namespace EnhancedOutsideConnectionsView
         // n    CableCarAI                (unlimited:  Cable Car Stop, End-of-Line Cable Car Stop)
         // n CarAI                        (base class with no buildings)
         // n    AmbulanceAI               Medical Clinic, Hospital, High-Capacity Hospital, Plastic Surgery Center (CCP), Medical Center (monument)
+        // n    BankVanAI                 Small Bank, Large Bank, Skyscraper Bank
         // n    BusAI                     Small Emergency Shelter, Large Emergency Shelter,
         // n                              (unlimited:
         // n                                  Bus Depot, Biofuel Bus Depot,
@@ -103,7 +104,7 @@ namespace EnhancedOutsideConnectionsView
         /// same Prefix routine is used for all vehicle AI types
         /// </summary>
         /// <returns>whether or not to do base processing</returns>
-        public static bool VehicleAIGetColor(ushort vehicleID, ref Vehicle data, InfoManager.InfoMode infoMode, ref Color __result)
+        public static bool VehicleAIGetColor(ushort vehicleID, ref Vehicle data, InfoManager.InfoMode infoMode, InfoManager.SubInfoMode subInfoMode, ref Color __result)
         {
             // do processing for this mod only for Outside Connections info view
             if (infoMode == InfoManager.InfoMode.Connections)
