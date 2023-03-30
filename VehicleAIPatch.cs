@@ -48,6 +48,7 @@ namespace EnhancedOutsideConnectionsView
         // n    TrolleybusAI              Trolleybus Depot
         // n    WaterTruckAI              Pumping Service
         // n CarTrailerAI                 (the trailer for:  some CargoTruckAI, maybe others)
+        // n    TrolleybusTrailerAI       (there are no vehicle prefabs with this AI, so just ignore it
         // n FerryAI                      (base class with no buildings)
         // n    FishingBoatAI             Fishing Harbor, Anchovy Fishing Harbor, Salmon Fishing Harbor, Shellfish Fishing Harbor, Tuna Fishing Harbor
         // n    PassengerFerryAI          (unlimited:  Ferry Depot)

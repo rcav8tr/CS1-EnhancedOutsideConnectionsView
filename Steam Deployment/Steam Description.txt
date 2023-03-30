@@ -3,7 +3,7 @@ The Outside Connections info view is enhanced to:[list]
 [*]show the numerical amount of each resource
 [*]show a graph of resources over time[/list]
 
-[img=https://i.imgur.com/O3ujMsj.png]
+[img=https://i.imgur.com/CYNzkiJ.png]
 
 [h1]Detailed Description[/h1]
 This mod introduces a show/hide check box for each import and export resource on the Outside Connections info view.  Your check box selections are remembered between games.

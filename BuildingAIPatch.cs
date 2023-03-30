@@ -50,6 +50,9 @@ namespace EnhancedOutsideConnectionsView
         // SS = Skyscrapers             11/15/22 ModderPack13 - "24 unique skyscrapers and high rises and their 20 variants" (i.e. 44 total unique buildings)
         // HK = Heart of Korea          11/15/22 ModderPack14 - "29 Growable low-density residential, 17 Growable high-density commercial, 6 service buildings, 8 unique buildings"
         // M2 = Map Pack 2              12/13/22 ModderPack15 - no unique buildings, "10 new maps"
+        // SM = Shopping Malls          03/22/23 ModderPack16 - "4 unique buildings, 53 growable commercial buildings, additional props"
+        // SV = Sports Venues           03/22/23 ModderPack17 - "6 large unique stadiums, 6 mid-sized unique stadiums, 10 Community sports parks"
+        // AM = Africa in Miniature     03/22/23 ModderPack18 - "11 unique buildings, 2 monuments, 4 service buildings, 9 growable buildings, 2 props"
 
 
 
@@ -111,15 +114,16 @@ namespace EnhancedOutsideConnectionsView
         //                                                     Historical Train Station SR (CCP)
         //                                          Air:       Airport BG
         //                                          Monorail:  Monorail Station MT, Monorail Station with Road MT,
-        //                                          Hub:       Bus-Intercity Bus Hub SH (aka Transport Hub 02 A), Bus-Metro Hub SH (aka Transport Hub 05 A), Metro-Intercity Bus Hub SH (aka Transport Hub 01 A),
-        //                                                     Train-Metro Hub SH (aka Transport Hub 03 A), Glass Box Transport Hub TS (aka H_Hub01), Multiplatform End Station MT, Multiplatform Train Station MT,
-        //                                                     International Airport AD, Metropolitan Airport SH (aka Transport Hub 04 A),
-        //                                                     Monorail-Bus Hub MT, Metro-Monorail-Train Hub MT
+        //                                          Hub:       Bus-Intercity Bus Hub SH (aka Transport Hub 02 A), Bus-Metro Hub SH (aka Transport Hub 05 A), Bus-Train-Tram Hub SF,
+        //                                                     Metro-Intercity Bus Hub SH (aka Transport Hub 01 A), Metro-Tram Hub with Road SF, Multi-level Metro Hub BG,
+        //                                                     Train-Metro Hub SH (aka Transport Hub 03 A), Glass Box Transport Hub TS (aka H_Hub01), Multiplatform End Station MT,
+        //                                                     Multiplatform Train Station MT, International Airport AD, Metropolitan Airport SH (aka Transport Hub 04 A),
+        //                                                     Monorail-Bus Hub MT, Monorail-Tram Hub with Road SF+MT, Metro-Monorail-Train Hub MT, Metro-Train-Monorail-Tram Hub with Road SF+MT
         //       AirportGateAI              GC      Airport Bus Station AP
         //       AirportGateAI              GC      Small Aircraft Stand AP, Medium Aircraft Stand AP, Large Aircraft Stand AP, Elevated Airport Metro Station AP, Airport Train Station AP
-        //       HarborAI                           Ferry Stop MT, Ferry Pier MT, Ferry and Bus Exchange Stop MT
-        //       HarborAI                           Harbor BG
-        // DisasterResponseBuildingAI       GC      Disaster Response Unit ND
+        //       HarborAI                           Ferry Stop MT, Ferry Pier MT, Ferry and Bus Exchange Stop MT, Ferry-Tram Hub SF+MT
+        //       HarborAI                           Harbor BG, Harbor-Ferry Hub MT, Harbor-Bus Hub BG, Harbor-Bus-Monorail Hub MT
+        // DisasterResponseBuildingAI       GC      Disaster Response Unit ND, Disaster Response Air Base ND
         // DoomsdayVaultAI                  GC      Doomsday Vault ND (monument)
         // EarthquakeSensorAI               GC      Earthquake Sensor ND
         // EldercareAI                      GC      Eldercare BG
@@ -129,7 +133,9 @@ namespace EnhancedOutsideConnectionsView
         // FishingHarborAI                  GC  OC  Fishing Harbor SH, Anchovy Fishing Harbor SH, Salmon Fishing Harbor SH, Shellfish Fishing Harbor SH, Tuna Fishing Harbor SH
         // HadronColliderAI                 GC      Hadron Collider BG (monument)
         // HeatingPlantAI                   GC  OC  Boiler Station SF, Geothermal Heating Plant SF
-        // HelicopterDepotAI                GC      Medical Helicopter Depot ND, Fire Helicopter Depot ND, Police Helicopter Depot ND
+        // HelicopterDepotAI                GC      Medical Helicopter Depot ND, Higher Capacity Medical Helicopter Depot ND,
+        //                                          Fire Helicopter Depot ND, Higher Capacity Fire Helicopter Depot ND,
+        //                                          Police Helicopter Depot ND, Higher Capacity Police Helicopter Depot ND
         // HospitalAI                       GC      Medical Laboratory HT (CCP)
         // HospitalAI                       GC      Medical Clinic BG, Hospital BG, High-Capacity Hospital PP, General Hospital SH (CCP), Plastic Surgery Center HK (CCP)
         //    MedicalCenterAI                       Medical Center BG (monument)
@@ -153,7 +159,7 @@ namespace EnhancedOutsideConnectionsView
         //                                          Eco-Friendly Incinerator Plant HK (CCP)
         //                                          Has Outside Connections logic, but the logic always returns neutral color, so don't include this AI.
         //    UltimateRecyclingPlantAI              Ultimate Recycling Plant GC (monument)
-        // LibraryAI                        GC      Public Library BG, Historical Library SR (CCP)
+        // LibraryAI                        GC      Public Library BG, Historical Library SR (CCP), National Library AM (CCP)
         // MainCampusBuildingAI             GC      Trade School Administration Building CA, Liberal Arts Administration Building CA, University Administration Building CA
         // MainIndustryBuildingAI           GC      Forestry Main Building IN, Farm Main Building IN, Ore Industry Main Building IN, Oil Industry Main Building IN
         // MaintenanceDepotAI               GC      Road Maintenance Depot SF, Park Maintenance Building PL
@@ -170,7 +176,7 @@ namespace EnhancedOutsideConnectionsView
         //                                          Pedestrian Area:    Pedestrian Street Market Hall PP, Museum of Post-Modern Art PP, Sunken Plaza Shopping Mall PP,
         //                                                              Commercial Zone Landmark PP, Residential Zone Landmark PP, Office Zone Landmark PP
         //                                          Match Day:          Football Stadium MD
-        //                                          Concerts:           Festival Area CO, Media Broadcast Building CO, Music Club CO, Fan Zone Park CO
+        //                                          Concerts:           Media Broadcast Building CO, Music Club CO, Fan Zone Park CO
         //                                          Airports:           Aviation Museum AP
         //                                          Level 1 Unique:     Statue of Industry BG, Statue of Wealth BG, Lazaret Plaza BG, Statue of Shopping BG, Plaza of the Dead BG,
         //                                                              Meteorite Park ND, Bird and Bee Haven GC, City Arch PL
@@ -184,30 +190,39 @@ namespace EnhancedOutsideConnectionsView
         //                                                              Sphinx Of Scenarios ND, Ziggurat Garden GC, Observation Tower PL
         //                                          Level 6 Unique:     Cathedral of Plenitude BG, Stadium BG, MAM Modern Art Museum BG, Sea-and-Sky Scraper BG, Theater of Wonders BG,
         //                                                              Sparkly Unicorn Rainbow Park ND, Central Park GC, The Statue of Colossalus PL
-        //                                          Content Creator:    MJ: Drive-in Restaurant, Drive-in Oriental Restaurant, Oriental Market, Noodle Restaurant, Ramen Restaurant,
-        //                                                                  Service Station and Restaurant, Small Office Building, City Office Building, District Office Building,
-        //                                                                  Local Register Office, Resort Hotel, Downtown Hotel, Temple, High-rise Office Building,
-        //                                                                  Company Headquarters, Office Skyscraper, The Station Department Store, The Rail Yard Shopping Center,
-        //                                                              AR: Eddie Kovanago, Pinoa Street, The Majesty,
-        //                                                              HT: Electric Car Factory, Nanotechnology Center, Research Center, Robotics Institute, Semiconductor Plant,
-        //                                                                  Software Development Studio, Space Shuttle Launch Site, Television Station,
-        //                                                              SR: Coast Guard Heritage Museum, The Abbott Hotel, Hotel Lafayette, Hotel New Linwood, The Empire House,
-        //                                                                  Anchor House Inn, Hotel Lawrence, Hotel Colonial, Hotel Aldine, Ausable Chasm Hotel, Hotel Brunswick,
-        //                                                                  Narragansett House, The Atlantic Hotel, Hotel Vesper, The Fabyan House, The Breakers Hotel, Ocean View Hotel,
-        //                                                                  Spring House, Hotel Allaire, Asbury Park Pavilion, Gordon Park Pavilion, New Orchard Ocean Pier,
-        //                                                                  Old Orchard House, Hotel Fiske, Isleworth Gardens,
-        //                                                              SS: Australia Triangle Building, Australia Poly Building, Large Bank Building, Marshalltown Centre, Marshalltown Tower,
-        //                                                                  Catalinas Norte Building, Catalinas Norte Tower, Torre Conde Paulista, Torre Conde Joaquim, Dreischeibenturm, Von Pell Haus,
-        //                                                                  Europaturm, Jubilee Motors Building, Island Park Tower 56fl, Island Park Tower 44fl, Island Park Tower 68fl, Island Park Tower 32fl,
-        //                                                                  Marble Centre, Marble Building, MLM Centre, MLM Building, One Embarcadero, One Montgomery, One Cheerful Plaza, One Galveston,
-        //                                                                  Six Rivers Centre, National Trade Centre, Banqiao Tower, Chihlee Tower, Torre Centrale, Torre Gioia, Gallusturm, Turm am Park,
-        //                                                                  Torre Manilva, Hinode Headquarters, Takeshiba Tower, Tour Bellini, Tour Courbevoie, Tour Saint-Denis, Tour Finot, Tower 69,
-        //                                                                  Tower 41, Moosach Turm, Olympia Turm,
-        //                                                              HK: Acrocastle Apartment Complex, Chirp's Thumbs Up Plaza, Dosan Square Center, JANGBEESOFT R&D Center,
-        //                                                                  Korean Food Alley, Korean Style Temple, Mirae Department Store, Youjoy Entertainment Agency
+        //                                          CCP AR:             Eddie Kovanago, Pinoa Street, The Majesty
+        //                                          CCP HT:             Electric Car Factory, Nanotechnology Center, Research Center, Robotics Institute, Semiconductor Plant,
+        //                                                              Software Development Studio, Space Shuttle Launch Site, Television Station
+        //                                          CCP MJ:             Drive-in Restaurant, Drive-in Oriental Restaurant, Oriental Market, Noodle Restaurant, Ramen Restaurant,
+        //                                                              Service Station and Restaurant, Small Office Building, City Office Building, District Office Building,
+        //                                                              Local Register Office, Resort Hotel, Downtown Hotel, The Station Department Store, The Rail Yard Shopping Center,
+        //                                                              Temple, High-rise Office Building, Company Headquarters, Office Skyscraper
+        //                                          CCP SR:             Coast Guard Heritage Museum, Hotel Lafayette, Hotel New Linwood, The Empire House, The Abbott Hotel,
+        //                                                              Hotel Aldine, Hotel Lawrence, Hotel Colonial, Anchor House Inn, Hotel Vesper, The Atlantic Hotel,
+        //                                                              Narragansett House, Hotel Brunswick, Ausable Chasm Hotel, The Fabyan House, Spring House, The Breakers Hotel,
+        //                                                              Hotel Allaire, Ocean View Hotel, Isleworth Gardens, Hotel Fiske, Gordon Park Pavilion, Old Orchard House,
+        //                                                              New Orchard Ocean Pier, Asbury Park Pavilion
+        //                                          CCP SS:             Australia Triangle Building, Australia Poly Building, Large Bank Building, Marshalltown Centre,
+        //                                                              Marshalltown Tower, Catalinas Norte Building, Catalinas Norte Tower, Torre Conde Paulista,
+        //                                                              Torre Conde Joaquim, Dreischeibenturm, Von Pell Haus, Europaturm, Jubilee Motors Building,
+        //                                                              Island Park Tower 56fl, Island Park Tower 44fl, Island Park Tower 68fl, Island Park Tower 32fl,
+        //                                                              Marble Centre, Marble Building, MLM Centre, MLM Building, One Embarcadero, One Montgomery,
+        //                                                              One Cheerful Plaza, One Galveston, Six Rivers Centre, National Trade Centre, Banqiao Tower,
+        //                                                              Chihlee Tower, Torre Centrale, Torre Gioia, Gallusturm, Turm am Park, Torre Manilva,
+        //                                                              Hinode Headquarters, Takeshiba Tower, Tour Bellini, Tour Courbevoie, Tour Saint-Denis,
+        //                                                              Tour Finot, Tower 69, Tower 41, Moosach Turm, Olympia Turm
+        //                                          CCP HK:             Acrocastle Apartment Complex, Chirp's Thumbs Up Plaza, Dosan Square Center, JANGBEESOFT R&D Center,
+        //                                                              Korean Food Alley, Korean Style Temple, Mirae Department Store, Youjoy Entertainment Agency
+        //                                          CCP SM:             Medium Grocery Store, Large Grocery Store, Open-Air Mall, Open-Air Mall Phase II, Shopping Plaza, Mall of Marvels
+        //                                          CCP SV:             Medium Soccer Stadium, City Soccer Stadium, City Baseball Stadium, Medium Baseball Stadium,
+        //                                                              Medium American Football Stadium, City American Football Stadium, Timber Box Soccer Stadium,
+        //                                                              Copper Bowl, Horseshoe Stadium, Arrow Park, Peanut Bowl Memorial Stadium
+        //                                          CCP AM:             Ego City Market, Conference Center, Ọrunmila Towers, Royal Museum, Sanctum of Oduduwa, The Temple of the Sahel,
+        //                                                              Communications Center, Bantu Art Museum, Sahel Monument, The Gold Tower, Unity Pyramid
         //    AirlineHeadquartersAI                 Airline Headquarters Building AP
         //    AnimalMonumentAI                      Winter Unique:   Santa Claus' Workshop SF
         //    ChirpwickCastleAI                     Castle Of Lord Chirpwick PL (monument)
+        //    FestivalAreaAI                        Festival Area CO
         //    InternationalTradeBuildingAI  GC      International Trade Building FD
         //    MuseumAI                              The Technology Museum CA, The Art Gallery CA, The Science Center CA
         //    PrivateAirportAI                      Aviation Club SH (Level 5 Unique)
@@ -220,9 +235,14 @@ namespace EnhancedOutsideConnectionsView
         //                                          Other Parks:        Basketball Court BG, Tennis Court BG
         //                                          Tourism & Leisure:  Fishing Pier AD, Fishing Tours AD, Jet Ski Rental AD, Marina AD, Restaurant Pier AD, Beach Volleyball Court AD, Riding Stable AD, Skatepark AD
         //                                          Winter Parks:       Snowman Park SF, Ice Sculpture Park SF, Sledding Hill SF, Curling Park SF, Skating Rink SF, Ski Lodge SF, Cross-Country Skiing Park SF, Firepit Park SF
-        //                                          Content Creator:    Seine Pier BP, Rhine Pier BP, Biodome HT, Vertical Farm HT,
-        //                                                              Car Port 2 Slot MM, Car Port 4 Slot MM, Car Port 6 Slot MM, Car Port 12 Slot MM, Car Port 24 Slot MM,
-        //                                                              Hotel Oasis A MM, Hotel Oasis B MM, Motel Palm Springs MM, Roadside Diner MM, Mothership MM
+        //                                          CCP HT:             Biodome, Vertical Farm
+        //                                          CCP BP:             Seine Pier, Rhine Pier
+        //                                          CCP MM:             Car Port 2 Slot, Car Port 4 Slot, Car Port 6 Slot, Car Port 12 Slot, Car Port 24 Slot,
+        //                                                              Hotel Oasis A, Hotel Oasis B, Motel Palm Springs, Roadside Diner, Mothership
+        //                                          CCP SV:             Small Soccer Field, Community Soccer Park, Community Australian Football Field, Community Australian Football Park,
+        //                                                              Community Baseball Field, Community Baseball Complex, Suburban American Football Field, Community American Football Park,
+        //                                                              Suburban Cricket Pitch, Community Cricket Pitch
+        //                                          CCP AM:             The Botanical Museum
         //    EdenProjectAI                         Eden Project BG (monument)
         // ParkBuildingAI                   GC      City Park:       PL: Park Plaza, Park Cafe #1, Park Restrooms #1, Park Info Booth #1, Park Chess Board #1, Park Pier #1, Park Pier #2
         //                                          Amusement Park:  PL: Amusement Park Plaza, Amusement Park Cafe #1, Amusement Park Souvenir Shop #1, Amusement Park Restrooms #1, Game Booth #1, Game Booth #2,
@@ -238,7 +258,8 @@ namespace EnhancedOutsideConnectionsView
         //                                          Amusement Park:  PL: Amusement Park Main Gate, Small Amusement Park Main Gate, Amusement Park Side Gate
         //                                          Zoo:             PL: Zoo Main Gate, Small Zoo Main Gate, Zoo Side Gate
         //                                          Nature Reserve:  PL: Nature Reserve Main Gate, Small Nature Reserve Main Gate, Nature Reserve Side Gate
-        // PoliceStationAI                  GC      Police Station BG, Police Headquarters BG, High-Capacity Police Headquarters PP, Prison AD, Historical Police Station SR (CCP), Intelligence Agency HT (CCP), Police Security Center HK (CCP)
+        // PoliceStationAI                  GC      Police Station BG, Police Headquarters BG, High-Capacity Police Headquarters PP, Prison AD, Historical Police Station SR (CCP), Intelligence Agency HT (CCP),
+        //                                          Police Security Center HK (CCP), Police Department AM (CCP)
         // PostOfficeAI                     GC  OC  Post Office IN, Post Sorting Facility IN
         // PowerPlantAI                     GC  OC  Coal Power Plant BG, Oil Power Plant BG, Nuclear Power Plant BG, Geothermal Power Plant GC, Ocean Thermal Energy Conversion Plant GC
         //                                          (unlimited coal/oil reserves so cannot compute storage)
@@ -249,7 +270,7 @@ namespace EnhancedOutsideConnectionsView
         // RadioMastAI                      GC      Short Radio Mast ND, Tall Radio Mast ND
         // SaunaAI                          GC      Sauna SF, Sports Hall and Gymnasium GC, Community Pool GC, Yoga Garden GC
         // SchoolAI                         GC      Elementary School BG, High-Capacity Elementary School PP, High School BG, High-Capacity High School PP, University BG, High-Capacity University PP,
-        //                                          Community School GC, Institute of Creative Arts GC, Modern Technology Institute GC, Faculty HT (CCP), Large Elementary School HK (CCP)
+        //                                          Community School GC, Institute of Creative Arts GC, Modern Technology Institute GC, Faculty HT (CCP), Large Elementary School HK (CCP), Community School AM (CCP)
         //    CampusBuildingAI              GC      Trade School:   CA: Trade School Dormitory, Trade School Study Hall, Trade School Groundskeeping, Book Club, Trade School Outdoor Study, Trade School Gymnasium, Trade School Cafeteria,
         //                                                              Trade School Fountain, Trade School Library, IT Club, Trade School Commencement Office, Trade School Academic Statue 1, Trade School Auditorium, Trade School Laboratories,
         //                                                              Trade School Bookstore, Trade School Media Lab, Beach Volleyball Club, Trade School Academic Statue 2
@@ -271,6 +292,7 @@ namespace EnhancedOutsideConnectionsView
         // TaxiStandAI                      GC      Taxi Stand AD (taxis wait at a Taxi Stand for a customer, taxis are not generated by a Taxi Stand)
         // TollBoothAI                      GC      Two-Way Toll Booth BG, One-Way Toll Booth BG, Two-Way Large Toll Booth BG, One-Way Large Toll Booth BG
         // TourBuildingAI                   GC      Hot Air Balloon Tours PL
+        //    ChirperTourAI                         Chirper Balloon Tours BG
         // TsunamiBuoyAI                    GC      Tsunami Warning Buoy ND
         // WarehouseAI                      GC  OC  Forestry:  IN: Small Log Yard, Saw Dust Storage, Large Log Yard, Wood Chip Storage
         //                                          Farming:   IN: Small Grain Silo, Large Grain Silo, Small Barn, Large Barn
