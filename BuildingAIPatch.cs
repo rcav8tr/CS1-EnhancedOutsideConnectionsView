@@ -31,6 +31,7 @@ namespace EnhancedOutsideConnectionsView
         // AP = Airports                01/25/22 AirportDLC
         // PP = Plazas & Promenades     09/14/22 PlazasAndPromenadesDLC
         // FD = Financial Districts     12/13/22 FinancialDistrictsDLC
+        // HR = Hotels & Retreats       05/23/23 HotelDLC
 
         // buildings introduced in CCP:
         // DE = Deluxe Edition          03/10/15 DeluxeDLC
@@ -53,7 +54,9 @@ namespace EnhancedOutsideConnectionsView
         // SM = Shopping Malls          03/22/23 ModderPack16 - "4 unique buildings, 53 growable commercial buildings, additional props"
         // SV = Sports Venues           03/22/23 ModderPack17 - "6 large unique stadiums, 6 mid-sized unique stadiums, 10 Community sports parks"
         // AM = Africa in Miniature     03/22/23 ModderPack18 - "11 unique buildings, 2 monuments, 4 service buildings, 9 growable buildings, 2 props"
-
+        // RJ = Railroads of Japan      05/23/23 ModderPack19 - "4 New Train Stations, 6 New Metro Stations, New Bus Depot, New Public Transport Vehicles, New Police Building, New Unique Building, 5 New Parks, 7 New Props"
+        // IE = Industrial Evolution    05/23/23 ModderPack20 - "70 New Industry Buildings"
+        // BQ = Brooklyn & Queens       05/23/23 ModderPack21 - "62 New High-Density Residential Buildings, 20 New Props"
 
 
         // For building AIs that derive from other building AIs (i.e. not derived from PrivateBuildingAI or PlayerBuildingAI):
@@ -97,10 +100,12 @@ namespace EnhancedOutsideConnectionsView
         // CargoStationAI                   GC      Cargo Train Terminal BG, Cargo Airport IN, Cargo Airport Hub IN, Airport Cargo Train Station AP
         //    AirportCargoGateAI            GC      Cargo Aircraft Stand AP
         //    CargoHarborAI                         Cargo Harbor BG, Cargo Hub AD
+        //    WarehouseStationAI            GC      Warehouse with Railway Connection IN (substation of WarehouseAI)
         // CemeteryAI                       GC      Cemetery BG, Crematorium BG, Cryopreservatory HT (CCP), Crematorium Memorial Park HK (CCP)
         // ChildcareAI                      GC      Child Health Center BG
         // DepotAI                          GC      Taxi Depot AD (vehicle count can be deteremined, but Taxi Depot is treated like it has unlimited)
-        // DepotAI                          GC      Bus Depot BG, Biofuel Bus Depot GC, Trolleybus Depot SH, Tram Depot SF, Ferry Depot MT, Helicopter Depot SH, Blimp Depot MT, Sightseeing Bus Depot PL
+        // DepotAI                          GC      Bus Depot BG, Biofuel Bus Depot GC, ROJ Japanese Bus Depot RJ (CCP), Trolleybus Depot SH, Tram Depot SF, Ferry Depot MT, Helicopter Depot SH, Blimp Depot MT,
+        //                                          Sightseeing Bus Depot PL
         //    CableCarStationAI                     Cable Car Stop MT, End-of-Line Cable Car Stop MT
         //    TransportStationAI                    Bus Station AD, Compact Bus Station PP, Helicopter Stop SH, Blimp Stop MT
         //    TransportStationAI                    Bus:       Intercity Bus Station SH, Intercity Bus Terminal SH,
@@ -108,10 +113,13 @@ namespace EnhancedOutsideConnectionsView
         //                                                     Parallel Underground Metro Station PP, Large Underground Metro Station PP, Metro Plaza Station TS (aka H_Hub02_A),
         //                                                     Sunken Island Platform Metro Station TS, Sunken Dual Island Platform Metro Station TS, Sunken Bypass Metro Station TS,
         //                                                     Elevated Island Platform Metro Station TS, Elevated Dual Island Platform Metro Station TS, Elevated Bypass Metro Station TS
+        //                                                     Stadium Station SV (CCP), ROJ Metro Ground Station RJ (CCP), ROJ Metro Entrance RJ (CCP), ROJ Metro Elevated Station RJ (CCP),
+        //                                                     ROJ Modern Metro Terminal RJ (CCP), ROJ Small Metro Terminal RJ (CCP), ROJ Classic Metro Terminal RJ (CCP)
         //                                          Train:     Train Station BG, Elevated Train Station PP, Crossover Train Station Hub TS (aka H_Hub03), Old Market Station TS (aka H_Hub04),
         //                                                     Ground Island Platform Train Station TS, Ground Dual Island Platform Train Station TS, Ground Bypass Train Station TS,
         //                                                     Elevated Island Platform Train Station TS, Elevated Dual Island Platform Train Station TS, Elevated Bypass Train Station TS,
-        //                                                     Historical Train Station SR (CCP)
+        //                                                     Historical Train Station SR (CCP), ROJ Small Elevated Station RJ (CCP), ROJ Small Ground Station RJ (CCP),
+        //                                                     ROJ Large Ground Station RJ (CCP), ROJ Large Elevated Station RJ (CCP)
         //                                          Air:       Airport BG
         //                                          Monorail:  Monorail Station MT, Monorail Station with Road MT,
         //                                          Hub:       Bus-Intercity Bus Hub SH (aka Transport Hub 02 A), Bus-Metro Hub SH (aka Transport Hub 05 A), Bus-Train-Tram Hub SF,
@@ -139,6 +147,8 @@ namespace EnhancedOutsideConnectionsView
         // HospitalAI                       GC      Medical Laboratory HT (CCP)
         // HospitalAI                       GC      Medical Clinic BG, Hospital BG, High-Capacity Hospital PP, General Hospital SH (CCP), Plastic Surgery Center HK (CCP)
         //    MedicalCenterAI                       Medical Center BG (monument)
+        // HotelAI                          GC      HR: Budget Hotel, Rental Cabin, Town Hostel, Small Hotel, Old Inn, Roadside Motel, City Hotel, Mountain Lodge,
+        //                                              Boat Hotel, Conference Hotel, Spa Resort, Ocean Resort, Heritage Hotel, Deluxe Hotel, Design Hotel
         // IndustryBuildingAI               GC      (base clase with no buildings)
         //    AuxiliaryBuildingAI           GC      Forestry:  IN: Forestry Workers’ Barracks, Forestry Maintenance Building
         //                                          Farming:   IN: Farm Workers’ Barracks, Farm Maintenance Building
@@ -153,8 +163,8 @@ namespace EnhancedOutsideConnectionsView
         //                                          Ore:       IN: Ore Grinding Mill, Glass Manufacturing Plant, Rotary Kiln Plant, Fiberglass Plant
         //                                          Oil:       IN: Oil Sludge Pyrolysis Plant, Petrochemical Plant, Waste Oil Refining Plant, Naphtha Cracker Plant
         //                                          Fishing:   SH: Fish Factory
-        //       UniqueFactoryAI                    IN: Furniture Factory, Bakery, Industrial Steel Plant, Household Plastic Factory, Toy Factory, Printing Press, Lemonade Factory, Electronics Factory,
-        //                                              Clothing Factory, Petroleum Refinery, Soft Paper Factory, Car Factory, Food Factory, Sneaker Factory, Modular House Factory, Shipyard
+        //       UniqueFactoryAI                    IN: Seafood Factory IN+SH, Furniture Factory, Bakery, Industrial Steel Plant, Household Plastic Factory, Toy Factory, Printing Press, Lemonade Factory,
+        //                                              Electronics Factory, Clothing Factory, Petroleum Refinery, Soft Paper Factory, Car Factory, Food Factory, Sneaker Factory, Modular House Factory, Shipyard
         // LandfillSiteAI                   GC  xx  Landfill Site BG, Incineration Plant BG, Recycling Center GC, Waste Transfer Facility SH, Waste Processing Complex SH, Waste Disposal Unit SH (CCP),
         //                                          Eco-Friendly Incinerator Plant HK (CCP)
         //                                          Has Outside Connections logic, but the logic always returns neutral color, so don't include this AI.
@@ -219,6 +229,7 @@ namespace EnhancedOutsideConnectionsView
         //                                                              Copper Bowl, Horseshoe Stadium, Arrow Park, Peanut Bowl Memorial Stadium
         //                                          CCP AM:             Ego City Market, Conference Center, Ọrunmila Towers, Royal Museum, Sanctum of Oduduwa, The Temple of the Sahel,
         //                                                              Communications Center, Bantu Art Museum, Sahel Monument, The Gold Tower, Unity Pyramid
+        //                                          CCP RJ:             ROJ Railway Company Headquarter
         //    AirlineHeadquartersAI                 Airline Headquarters Building AP
         //    AnimalMonumentAI                      Winter Unique:   Santa Claus' Workshop SF
         //    ChirpwickCastleAI                     Castle Of Lord Chirpwick PL (monument)
@@ -243,14 +254,15 @@ namespace EnhancedOutsideConnectionsView
         //                                                              Community Baseball Field, Community Baseball Complex, Suburban American Football Field, Community American Football Park,
         //                                                              Suburban Cricket Pitch, Community Cricket Pitch
         //                                          CCP AM:             The Botanical Museum
+        //                                          CCP RJ:             ROJ Paid Parking Small, ROJ Paid Parking Large, ROJ Small Station Front Plaza, ROJ Large Station Front Plaza, ROJ Small Station Market
         //    EdenProjectAI                         Eden Project BG (monument)
         // ParkBuildingAI                   GC      City Park:       PL: Park Plaza, Park Cafe #1, Park Restrooms #1, Park Info Booth #1, Park Chess Board #1, Park Pier #1, Park Pier #2
         //                                          Amusement Park:  PL: Amusement Park Plaza, Amusement Park Cafe #1, Amusement Park Souvenir Shop #1, Amusement Park Restrooms #1, Game Booth #1, Game Booth #2,
-        //                                                               Carousel, Piggy Train, Rotating Tea Cups, Swinging Boat, House Of Horrors, Bumper Cars, Drop Tower Ride, Pendulum Ride, Ferris Wheel, Rollercoaster
+        //                                                               Carousel, Piggy Train, Rotating Tea Cups, Swinging Boat, House Of Horrors, Bumper Cars, Drop Tower Ride, Pendulum Ride, Log Ride, Ferris Wheel, Rollercoaster
         //                                          Zoo:             PL: Zoo Plaza, Zoo Cafe #1, Zoo Souvenir Shop #1, Zoo Restrooms #1, Moose And Reindeer Enclosure, Bird House, Antelope Enclosure, Bison Enclosure,
-        //                                                               {Insect, Amphibian and Reptile House}, Flamingo Enclosure, Elephant Enclosure, Sealife Enclosure, Giraffe Enclosure, Monkey Palace, Rhino Enclosure, Lion Enclosure
+        //                                                               {Insect, Amphibian and Reptile House}, Tarsier House, Flamingo Enclosure, Elephant Enclosure, Sealife Enclosure, Giraffe Enclosure, Monkey Palace, Rhino Enclosure, Lion Enclosure
         //                                          Nature Reserve:  PL: Campfire Site #1, Campfire Site #2, Tent #1, Tent #2, Tent #3, Viewing Deck #1, Viewing Deck #2, Tent Camping Site #1, Lean-To Shelter #1, Lean-To Shelter #2,
-        //                                                               Lookout Tower #1, Lookout Tower #2, Camping Site #1, Fishing Cabin #1, Fishing Cabin #2, Hunting Cabin #1, Hunting Cabin #2, Bouldering Site #1
+        //                                                               Lookout Tower #1, Lookout Tower #2, Camping Site #1, Fishing Cabin #1, Fishing Cabin #2, Hunting Cabin #1, Hunting Cabin #2, Bouldering Site #1, Nature Reserve Museum
         //                                          Pedestrian:      PP: Small Food Truck Plaza, Small Fountain Plaza, Small Glass Roof Plaza, Statue Plaza, Large Food Truck Plaza,
         //                                                               Flower Plaza, Large Fountain Plaza, Large Glass Roof Plaza
         //    IceCreamStandAI                       Pedestrian:      PP: Small Ice Cream Stand Plaza, Large Ice Cream Stand Plaza
@@ -259,9 +271,9 @@ namespace EnhancedOutsideConnectionsView
         //                                          Zoo:             PL: Zoo Main Gate, Small Zoo Main Gate, Zoo Side Gate
         //                                          Nature Reserve:  PL: Nature Reserve Main Gate, Small Nature Reserve Main Gate, Nature Reserve Side Gate
         // PoliceStationAI                  GC      Police Station BG, Police Headquarters BG, High-Capacity Police Headquarters PP, Prison AD, Historical Police Station SR (CCP), Intelligence Agency HT (CCP),
-        //                                          Police Security Center HK (CCP), Police Department AM (CCP)
+        //                                          Police Security Center HK (CCP), Police Department AM (CCP), ROJ Police Box RJ (CCP)
         // PostOfficeAI                     GC  OC  Post Office IN, Post Sorting Facility IN
-        // PowerPlantAI                     GC  OC  Coal Power Plant BG, Oil Power Plant BG, Nuclear Power Plant BG, Geothermal Power Plant GC, Ocean Thermal Energy Conversion Plant GC
+        // PowerPlantAI                     GC  OC  Coal Power Plant BG, Advanced Coal Power Plant GC, Oil Power Plant BG, Nuclear Power Plant BG, Geothermal Power Plant GC, Ocean Thermal Energy Conversion Plant GC
         //                                          (unlimited coal/oil reserves so cannot compute storage)
         //    DamPowerHouseAI                       Hydro Power Plant BG
         //    FusionPowerPlantAI                    Fusion Power Plant BG (monument)
@@ -298,7 +310,7 @@ namespace EnhancedOutsideConnectionsView
         //                                          Farming:   IN: Small Grain Silo, Large Grain Silo, Small Barn, Large Barn
         //                                          Ore:       IN: Sand Storage, Ore Storage, Ore Industry Storage, Raw Mineral Storage
         //                                          Oil:       IN: Small Crude Oil Tank Farm, Large Crude Oil Tank Farm, Crude Oil Storage Cavern, Oil Industry Storage
-        //                                          Generic:   IN: Warehouse Yard, Small Warehouse, Medium Warehouse, Large Warehouse
+        //                                          Generic:   IN: Warehouse Yard, Small Warehouse, Medium Warehouse, Warehouse with Railway Connection, Large Warehouse
         // WaterCleanerAI                   GC      Floating Garbage Collector GC
         // WaterFacilityAI                  GC      Water Pumping Station BG, Water Tower BG, Large Water Tower SH, Water Drain Pipe BG, Water Treatment Plant BG,
         //                                          Inland Water Treatment Plant SH, Advanced Inland Water Treatment Plant SH, Eco Water Outlet GC, Eco Water Treatment Plant GC,
