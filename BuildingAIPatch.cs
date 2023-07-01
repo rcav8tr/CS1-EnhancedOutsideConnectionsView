@@ -72,6 +72,7 @@ namespace EnhancedOutsideConnectionsView
 
         // ResidentialBuildingAI            GC      Zoned Generic Low Density BG, Zoned Generic High Density BG, Zoned Specialized Residential (Self-Sufficient Buildings GC, Wall-to-Wall PP)
         // CommercialBuildingAI             GC  OC  Zoned Generic Low Density BG, Zoned Generic High Density BG, Zoned Specialized Commercial (Tourism AD, Wall-to-Wall PP, Leisure AD, Organic and Local Produce GC)
+        //    GameStoreAI                           (same as CommercialBuildingAI)
         // OfficeBuildingAI                 GC  OC  Zoned Generic Office BG, Zoned Specialized Office (IT Cluster GC, Wall-to-Wall PP)
         // IndustrialBuildingAI             GC  OC  Zoned Generic Industrial BG
         // IndustrialExtractorAI            GC  OC  Zoned Specialized Industrial (Forest BG, Farming BG, Ore BG, Oil BG)
