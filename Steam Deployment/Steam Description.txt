@@ -36,7 +36,7 @@ This mod is compatible with mods that change the game speed, including: [url=htt
 This mod may or may not work correctly if another mod is enabled that alters the Outside Connections info view panel or that alters the logic to get building or vehicle color when the Outside Connections info view is displayed.
 
 [h1]Source Code[/h1]
-Available [url=https://github.com/rcav8tr/EnhancedOutsideConnectionsView]here[/url].
+Available [url=https://gitlab.com/rcav8tr1/citiesskylinesmods/EnhancedOutsideConnectionsView]here[/url].
 Change notes [url=https://steamcommunity.com/sharedfiles/filedetails/changelog/2368396560]here[/url].
 
 [h1]Acknowledgments[/h1]
